@@ -41,6 +41,23 @@ def download_nltk_data():
 
 download_nltk_data()
 
+# ============== GLOBAL PREPROCESSING RESOURCES ==============
+# 🔥 IMPROVEMENT 1: Initialize stopwords & lemmatizer ONCE globally
+# This avoids recreating them for every article (much faster!)
+@st.cache_resource
+def get_preprocessing_resources():
+    """Get stopwords and lemmatizer (cached globally)"""
+    stop_words = set(stopwords.words('english'))
+    extra_stopwords = {
+        "new", "said", "say", "year", "world",
+        "could", "one", "make", "day", "watch", "wa", "ha", "may"
+    }
+    stop_words = stop_words.union(extra_stopwords)
+    lemmatizer = WordNetLemmatizer()
+    return stop_words, lemmatizer
+
+STOP_WORDS, LEMMATIZER = get_preprocessing_resources()
+
 # ============== PAGE CONFIGURATION ==============
 st.set_page_config(
     page_title="NLP News Analysis Pipeline",
@@ -70,7 +87,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============== CONFIGURATION ==============
-API_KEY = "YOUR_NEWSAPI_KEY_HERE"  # ⚠️ PASTE YOUR API KEY HERE
+# 🔥 IMPROVEMENT 4: Use st.secrets for secure API key management
+# For local testing, fall back to hardcoded key
+try:
+    API_KEY = st.secrets.get("NEWSAPI_KEY", "YOUR_NEWSAPI_KEY_HERE")
+except:
+    API_KEY = "YOUR_NEWSAPI_KEY_HERE"  # Fallback for local testing
+
 KEYWORDS = ["ai", "climate", "economy", "healthcare", "election"]
 
 # ============== TEXT CLEANING FUNCTIONS ==============
@@ -93,23 +116,18 @@ def clean_text_for_nlp(text):
 # ============== PREPROCESSING FUNCTIONS ==============
 def preprocess_text(text):
     """Tokenize, lemmatize, and remove stopwords"""
-    stop_words = set(stopwords.words('english'))
-    extra_stopwords = {
-        "new", "said", "say", "year", "world",
-        "could", "one", "make", "day", "watch", "wa", "ha", "may"
-    }
-    stop_words = stop_words.union(extra_stopwords)
-    lemmatizer = WordNetLemmatizer()
-    
+    # 🔥 IMPROVEMENT 1: Use globally cached stopwords & lemmatizer
     try:
         tokens = word_tokenize(text)
-        lemmatized_tokens = [lemmatizer.lemmatize(word) for word in tokens]
-        filtered_tokens = [word for word in lemmatized_tokens if word not in stop_words]
+        lemmatized_tokens = [LEMMATIZER.lemmatize(word) for word in tokens]
+        filtered_tokens = [word for word in lemmatized_tokens if word not in STOP_WORDS]
         return ' '.join(filtered_tokens)
     except:
         return text
 
 # ============== API FUNCTIONS ==============
+# 🔥 IMPROVEMENT 3: Cache API results to avoid repeated calls on reruns
+@st.cache_data
 def fetch_news(from_date, to_date, progress_bar=None):
     """Fetch news from NewsAPI for all keywords"""
     articles_list = []
@@ -189,7 +207,9 @@ def perform_tfidf_analysis(df):
     tfidf_matrix = tfidf_vectorizer.fit_transform(df['preprocessed_news'])
     
     feature_names = tfidf_vectorizer.get_feature_names_out()
-    mean_tfidf = np.mean(tfidf_matrix.toarray(), axis=0)
+    
+    # 🔥 IMPROVEMENT 2: Use memory-efficient operation instead of .toarray()
+    mean_tfidf = np.asarray(tfidf_matrix.mean(axis=0)).ravel()
     
     word_scores = list(zip(feature_names, mean_tfidf))
     sorted_word_scores = sorted(word_scores, key=lambda x: x[1], reverse=True)
