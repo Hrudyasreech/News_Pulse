@@ -255,7 +255,7 @@ with st.sidebar:
                 st.write("✅ Complete!")
             
             status.update(state="complete")
-            st.balloons()
+            st.success("✅ Analysis Completed Successfully!")
             
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
@@ -588,4 +588,5 @@ else:
                     st.rerun()
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+
 
