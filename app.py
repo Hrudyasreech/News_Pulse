@@ -145,7 +145,7 @@ def perform_tfidf_analysis(df):
 
 def perform_lda_analysis(df):
     """Perform LDA analysis"""
-    vectorizer = CountVectorizer(max_features=500, max_df=0.6, min_df=3, ngram_range=(1, 2))
+    vectorizer = CountVectorizer(max_features=500, max_df=0.6, min_df=3, ngram_range=(1, 2), stop_words='english')
     X = vectorizer.fit_transform(df['preprocessed_news'])
     lda = LatentDirichletAllocation(n_components=3, max_iter=50, learning_method='batch', doc_topic_prior=0.1, topic_word_prior=0.1, random_state=42)
     lda.fit(X)
@@ -588,3 +588,4 @@ else:
                     st.rerun()
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+
