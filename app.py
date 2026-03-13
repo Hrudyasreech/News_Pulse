@@ -4,6 +4,7 @@ import numpy as np
 import requests
 import re
 import time
+import hashlib
 from datetime import datetime, timedelta
 import nltk
 from nltk.corpus import stopwords
@@ -13,580 +14,828 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 import plotly.express as px
+import plotly.graph_objects as go
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# ============== PAGE CONFIG ==============
+# ============================================================
+#  PAGE CONFIG
+# ============================================================
 st.set_page_config(
-    page_title="NLP News Analysis",
-    page_icon="📰",
+    page_title="NewsLens",
+    page_icon="🔭",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ============== DOWNLOAD NLTK DATA ==============
+# ============================================================
+#  GLOBAL CSS  –  chocolate-brown luxury editorial
+# ============================================================
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
+
+/* ── tokens ── */
+:root {
+    --bg:        #1a1208;
+    --surface:   #231a0e;
+    --surface2:  #2e2212;
+    --border:    #4a3520;
+    --accent:    #c8954a;
+    --accent2:   #e8c090;
+    --text:      #e8ddd0;
+    --muted:     #9a8570;
+    --neg:       #c04a4a;
+    --pos:       #6aab6a;
+    --neu:       #8a8a6a;
+}
+
+/* ── base ── */
+html, body, [class*="css"] {
+    font-family: 'Jost', sans-serif;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+/* sidebar */
+section[data-testid="stSidebar"] {
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+}
+section[data-testid="stSidebar"] * { color: var(--text) !important; }
+
+/* inputs */
+.stTextInput > div > div > input,
+.stDateInput > div > div > input,
+.stSelectbox > div > div {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 4px !important;
+}
+.stTextInput > div > div > input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px rgba(200,149,74,.2) !important;
+}
+
+/* primary button */
+.stButton > button[kind="primary"] {
+    background: var(--accent) !important;
+    color: #1a1208 !important;
+    border: none !important;
+    border-radius: 2px !important;
+    font-family: 'Jost', sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    font-size: .75rem !important;
+    padding: .65rem 1.5rem !important;
+    transition: background .2s ease !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: var(--accent2) !important;
+}
+.stButton > button:not([kind="primary"]) {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
+    border-radius: 2px !important;
+    font-size: .75rem !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+    transition: border-color .2s, color .2s !important;
+}
+.stButton > button:not([kind="primary"]):hover {
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* download button */
+.stDownloadButton > button {
+    background: transparent !important;
+    border: 1px solid var(--accent) !important;
+    color: var(--accent) !important;
+    border-radius: 2px !important;
+    font-size: .75rem !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+}
+
+/* metrics */
+[data-testid="stMetric"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-top: 2px solid var(--accent) !important;
+    padding: 1rem !important;
+    border-radius: 2px !important;
+}
+[data-testid="stMetricLabel"] { color: var(--muted) !important; font-size: .7rem !important; letter-spacing: .1em !important; text-transform: uppercase !important; }
+[data-testid="stMetricValue"] { color: var(--accent2) !important; font-family: 'Cormorant Garamond', serif !important; font-size: 2rem !important; }
+
+/* dataframe */
+.stDataFrame { border: 1px solid var(--border) !important; border-radius: 2px !important; }
+iframe { background: var(--surface) !important; }
+
+/* tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border) !important;
+    gap: 0 !important;
+}
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--muted) !important;
+    font-family: 'Jost', sans-serif !important;
+    font-size: .72rem !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+    padding: .6rem 1.2rem !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+}
+.stTabs [aria-selected="true"] {
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent) !important;
+    background: transparent !important;
+}
+
+/* divider */
+hr { border-color: var(--border) !important; }
+
+/* info / success / error boxes */
+.stAlert { border-radius: 2px !important; border-left: 3px solid var(--accent) !important; background: var(--surface) !important; }
+
+/* radio in sidebar */
+.stRadio > div { gap: .3rem !important; }
+.stRadio label { font-size: .8rem !important; letter-spacing: .06em !important; }
+
+/* plotly */
+.js-plotly-plot .plotly { background: transparent !important; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ============================================================
+#  HELPERS – branded HTML components
+# ============================================================
+def brand_header():
+    st.markdown("""
+    <div style="padding:2rem 0 1.5rem; border-bottom:1px solid var(--border); margin-bottom:2rem;">
+        <p style="font-family:'Jost',sans-serif; font-size:.65rem; letter-spacing:.25em;
+                  color:var(--muted); text-transform:uppercase; margin:0 0 .3rem;">
+            NLP · Intelligence Platform
+        </p>
+        <h1 style="font-family:'Cormorant Garamond',serif; font-size:3rem; font-weight:300;
+                   color:var(--accent2); margin:0; line-height:1;">
+            NewsLens
+        </h1>
+        <p style="font-family:'Jost',sans-serif; font-size:.8rem; color:var(--muted);
+                  letter-spacing:.08em; margin:.5rem 0 0;">
+            Semantic news analysis · Trends · Sentiment
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def section_title(text, sub=None):
+    st.markdown(f"""
+    <div style="margin:2rem 0 1.2rem; padding-bottom:.8rem; border-bottom:1px solid var(--border);">
+        <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300;
+                   color:var(--accent2); margin:0; letter-spacing:.02em;">{text}</h2>
+        {"<p style='font-size:.75rem; color:var(--muted); margin:.3rem 0 0; letter-spacing:.06em;'>"+sub+"</p>" if sub else ""}
+    </div>
+    """, unsafe_allow_html=True)
+
+def article_card(title, source, keyword, score=None):
+    score_color = "var(--pos)" if score and score >= 0.2 else ("var(--neg)" if score and score <= -0.2 else "var(--neu)")
+    score_html = f"<span style='color:{score_color}; font-size:.7rem;'>● {score:.3f}</span>" if score is not None else ""
+    st.markdown(f"""
+    <div style="background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent);
+                padding:1rem 1.2rem; margin:.5rem 0; border-radius:2px;">
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1rem; color:var(--accent2);
+                  margin:0 0 .4rem; line-height:1.4;">{title}</p>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:.65rem; letter-spacing:.1em; color:var(--muted); text-transform:uppercase;">{source}</span>
+            <span style="font-size:.65rem; letter-spacing:.1em; color:var(--accent); text-transform:uppercase; 
+                         border:1px solid var(--border); padding:.1rem .4rem;">{keyword}</span>
+            {score_html}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+def plotly_theme():
+    """Return common plotly layout overrides for the brown theme."""
+    return dict(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(family='Jost, sans-serif', color='#9a8570', size=11),
+        title_font=dict(family='Cormorant Garamond, serif', color='#e8c090', size=16),
+        colorway=['#c8954a','#e8c090','#a06030','#6aab6a','#c04a4a','#8a8a6a'],
+        xaxis=dict(gridcolor='#2e2212', linecolor='#4a3520', tickfont=dict(size=10)),
+        yaxis=dict(gridcolor='#2e2212', linecolor='#4a3520', tickfont=dict(size=10)),
+        legend=dict(bgcolor='rgba(0,0,0,0)', bordercolor='#4a3520', borderwidth=1),
+        margin=dict(l=40, r=20, t=50, b=40),
+    )
+
+
+# ============================================================
+#  NLTK SETUP
+# ============================================================
 @st.cache_resource
 def download_nltk_data():
-    """Download required NLTK data"""
-    for package in ['punkt', 'stopwords', 'wordnet', 'vader_lexicon']:
+    for pkg in ['punkt', 'punkt_tab', 'stopwords', 'wordnet', 'vader_lexicon']:
         try:
-            nltk.download(package, quiet=True)
+            nltk.download(pkg, quiet=True)
         except:
             pass
 
 download_nltk_data()
 
-# ============== GLOBAL RESOURCES ==============
 @st.cache_resource
 def get_preprocessing_resources():
-    """Get stopwords and lemmatizer (cached globally)"""
     stop_words = set(stopwords.words('english'))
-    extra_stopwords = {
-        "new", "said", "say", "year", "world",
-        "could", "one", "make", "day", "watch", "wa", "ha", "may"
-    }
-    stop_words = stop_words.union(extra_stopwords)
-    lemmatizer = WordNetLemmatizer()
-    return stop_words, lemmatizer
+    extra = {"new","said","say","year","world","could","one","make","day","watch","wa","ha","may","also","would","like","get","us","time"}
+    stop_words |= extra
+    return stop_words, WordNetLemmatizer()
 
 STOP_WORDS, LEMMATIZER = get_preprocessing_resources()
 
-# ============== CONFIGURATION ==============
+
+# ============================================================
+#  AUTH  (simple hash-based; no DB required)
+# ============================================================
+USERS = {
+    "admin": {"password": hashlib.sha256("admin123".encode()).hexdigest(), "role": "admin"},
+    "user":  {"password": hashlib.sha256("user123".encode()).hexdigest(),  "role": "user"},
+}
+
+def check_login(username, password):
+    hashed = hashlib.sha256(password.encode()).hexdigest()
+    user = USERS.get(username)
+    if user and user["password"] == hashed:
+        return user["role"]
+    return None
+
+
+# ============================================================
+#  CONFIG
+# ============================================================
 try:
     API_KEY = st.secrets.get("NEWSAPI_KEY", "YOUR_NEWSAPI_KEY_HERE")
 except:
     API_KEY = "YOUR_NEWSAPI_KEY_HERE"
 
-KEYWORDS = ["ai", "climate", "economy", "healthcare", "election"]
 
-# ============== TEXT CLEANING ==============
+# ============================================================
+#  TEXT PROCESSING
+# ============================================================
 def clean_text(text):
-    """Remove non-printable characters and extra whitespace"""
     if isinstance(text, str):
-        text = re.sub(r'[\x00-\x1F\x7F-\x9f]', '', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()
+        text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+        return re.sub(r'\s+', ' ', text).strip()
     return text
 
 def clean_text_for_nlp(text):
-    """Clean text for NLP processing"""
     text = str(text).lower()
     text = re.sub(r'<.*?>', '', text)
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+    return re.sub(r'\s+', ' ', text).strip()
 
 def preprocess_text(text):
-    """Tokenize, lemmatize, and remove stopwords"""
     try:
         tokens = word_tokenize(text)
-        lemmatized_tokens = [LEMMATIZER.lemmatize(word) for word in tokens]
-        filtered_tokens = [word for word in lemmatized_tokens if word not in STOP_WORDS]
-        return ' '.join(filtered_tokens)
+        tokens = [LEMMATIZER.lemmatize(w) for w in tokens]
+        tokens = [w for w in tokens if w not in STOP_WORDS and len(w) > 2]
+        return ' '.join(tokens)
     except:
         return text
 
-# ============== API FUNCTIONS ==============
-@st.cache_data(show_spinner=False)
-def fetch_news(from_date, to_date):
-    """Fetch news from NewsAPI for all keywords"""
+
+# ============================================================
+#  API
+# ============================================================
+@st.cache_data(show_spinner=False, ttl=3600)
+def fetch_news(keywords_tuple, from_date, to_date):
     articles_list = []
-    
-    for keyword in KEYWORDS:
+    for keyword in keywords_tuple:
         for page in range(1, 3):
             try:
-                url = f"https://newsapi.org/v2/everything?q={keyword}&from={from_date}&to={to_date}&pageSize=100&page={page}&apiKey={API_KEY}"
-                response = requests.get(url, timeout=10)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    articles = data.get("articles", [])
-                    if not articles:
+                url = (f"https://newsapi.org/v2/everything?q={keyword}"
+                       f"&from={from_date}&to={to_date}&pageSize=100&page={page}&apiKey={API_KEY}")
+                r = requests.get(url, timeout=10)
+                if r.status_code == 200:
+                    data = r.json()
+                    arts = data.get("articles", [])
+                    if not arts:
                         break
-                    
-                    for article in articles:
+                    for a in arts:
                         articles_list.append({
-                            "Title": article.get("title", ""),
-                            "Description": article.get("description", ""),
-                            "Source": article.get("source", {}).get("name", ""),
-                            "Published Date": article.get("publishedAt", ""),
-                            "Keyword": keyword
+                            "Title":          a.get("title", ""),
+                            "Description":    a.get("description", ""),
+                            "Source":         a.get("source", {}).get("name", ""),
+                            "Published Date": a.get("publishedAt", ""),
+                            "Keyword":        keyword,
+                            "URL":            a.get("url", ""),
                         })
                     time.sleep(0.2)
                 else:
                     break
             except:
                 break
-    
     return pd.DataFrame(articles_list)
 
 def clean_dataset(df):
-    """Clean dataset"""
-    df["Title"] = df["Title"].apply(clean_text)
+    df["Title"]       = df["Title"].apply(clean_text)
     df["Description"] = df["Description"].apply(clean_text)
     df.dropna(inplace=True)
     df.drop_duplicates(subset=["Title"], inplace=True)
-    df["Published Date"] = pd.to_datetime(df["Published Date"])
-    df['news'] = df['Title'] + ' ' + df['Description']
-    df['clean_news'] = df['news'].apply(clean_text_for_nlp)
+    df["Published Date"] = pd.to_datetime(df["Published Date"], utc=True)
+    df["Date"]           = df["Published Date"].dt.date
+    df['news']           = df['Title'] + ' ' + df['Description']
+    df['clean_news']     = df['news'].apply(clean_text_for_nlp)
     df['preprocessed_news'] = df['clean_news'].apply(preprocess_text)
-    return df
+    df = df[df['Title'].str.strip() != '']
+    df = df[df['Title'] != '[Removed]']
+    return df.reset_index(drop=True)
 
-# ============== ANALYSIS FUNCTIONS ==============
-def perform_tfidf_analysis(df):
-    """Perform TF-IDF analysis"""
-    tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english', ngram_range=(1, 2))
-    tfidf_matrix = tfidf_vectorizer.fit_transform(df['clean_news'])
-    feature_names = tfidf_vectorizer.get_feature_names_out()
-    mean_tfidf = np.asarray(tfidf_matrix.mean(axis=0)).ravel()
-    word_scores = sorted(list(zip(feature_names, mean_tfidf)), key=lambda x: x[1], reverse=True)
-    return {word: float(score) for word, score in word_scores[:10]}
 
-def perform_lda_analysis(df):
-    """Perform LDA analysis"""
-    vectorizer = CountVectorizer(max_features=500, max_df=0.6, min_df=3, ngram_range=(1, 2), stop_words='english')
-    X = vectorizer.fit_transform(df['preprocessed_news'])
-    lda = LatentDirichletAllocation(n_components=3, max_iter=50, learning_method='batch', doc_topic_prior=0.1, topic_word_prior=0.1, random_state=42)
+# ============================================================
+#  ANALYSIS
+# ============================================================
+def perform_tfidf(df):
+    vec = TfidfVectorizer(max_features=1000, stop_words='english', ngram_range=(1, 2))
+    mat = vec.fit_transform(df['clean_news'])
+    names = vec.get_feature_names_out()
+    scores = np.asarray(mat.mean(axis=0)).ravel()
+    pairs = sorted(zip(names, scores), key=lambda x: x[1], reverse=True)
+    return {w: float(s) for w, s in pairs[:15]}
+
+def perform_lda(df, n_topics=3):
+    vec = CountVectorizer(max_features=500, max_df=0.6, min_df=3, ngram_range=(1, 2), stop_words='english')
+    X = vec.fit_transform(df['preprocessed_news'])
+    lda = LatentDirichletAllocation(n_components=n_topics, max_iter=50, random_state=42)
     lda.fit(X)
-    words = vectorizer.get_feature_names_out()
+    words = vec.get_feature_names_out()
     topics = {}
-    for i, topic in enumerate(lda.components_):
-        top_words = [words[j] for j in topic.argsort()[-8:][::-1]]
-        topics[f"Topic {i+1}"] = ", ".join(top_words)
+    for i, comp in enumerate(lda.components_):
+        top = [words[j] for j in comp.argsort()[-8:][::-1]]
+        topics[f"Topic {i+1}"] = top
     return topics
 
-def perform_sentiment_analysis(df):
-    """Perform sentiment analysis"""
+def perform_sentiment(df):
     sia = SentimentIntensityAnalyzer()
-    df['sentiment_scores'] = df['clean_news'].apply(lambda x: sia.polarity_scores(x)['compound'])
-    df['sentiment_label'] = df['sentiment_scores'].apply(lambda s: 'Positive' if s >= 0.2 else ('Negative' if s <= -0.2 else 'Neutral'))
-    sentiment_dist = df['sentiment_label'].value_counts().to_dict()
-    return df, sentiment_dist
+    df['sentiment_score'] = df['clean_news'].apply(lambda x: sia.polarity_scores(x)['compound'])
+    df['sentiment']       = df['sentiment_score'].apply(
+        lambda s: 'Positive' if s >= 0.2 else ('Negative' if s <= -0.2 else 'Neutral'))
+    return df
 
-# ============== SESSION STATE ==============
-if 'df' not in st.session_state:
-    st.session_state.df = None
-if 'tfidf_results' not in st.session_state:
-    st.session_state.tfidf_results = None
-if 'lda_topics' not in st.session_state:
-    st.session_state.lda_topics = None
-if 'sentiment_dist' not in st.session_state:
-    st.session_state.sentiment_dist = None
+def keyword_trend(df):
+    """Daily keyword mentions"""
+    trend = df.groupby(['Date', 'Keyword']).size().reset_index(name='Count')
+    return trend
 
-# ============== SIDEBAR ==============
-with st.sidebar:
-    st.header("⚙️ Data Fetching")
-    st.divider()
-    
-    today = datetime.utcnow().date()
-    default_start = today - timedelta(days=14)
-    
-    from_date = st.date_input("📅 From Date", value=default_start, max_value=today)
-    to_date = st.date_input("📅 To Date", value=today, max_value=today)
-    
-    st.divider()
-    st.info(f"🔍 Keywords: {', '.join(KEYWORDS)}")
-    st.divider()
-    
-    # Date Validation
-    if from_date > to_date:
-        st.error("❌ From Date cannot be after To Date!")
-    else:
-        days_diff = (to_date - from_date).days
-        st.success(f"✓ Date range: {days_diff} days")
-        if days_diff == 0:
-            st.warning("⚠️ Same day - limited results")
-        elif days_diff > 30:
-            st.warning("⚠️ Large range (>30 days)")
-    
-    st.divider()
-    
-    # Fetch Button
-    if st.button("🚀 Fetch & Analyze", use_container_width=True, type="primary"):
-        if API_KEY == "YOUR_NEWSAPI_KEY_HERE":
-            st.error("❌ Configure NewsAPI Key!")
-            st.stop()
-        
-        if from_date > to_date:
-            st.error("❌ Invalid date range!")
-            st.stop()
-        
-        progress = st.progress(0)
-        status = st.status("Processing...", expanded=True)
-        
-        try:
-            with status:
-                st.write("📥 Fetching news...")
-            progress.progress(15)
+def sentiment_trend(df):
+    """Daily average sentiment"""
+    trend = df.groupby('Date')['sentiment_score'].mean().reset_index()
+    trend.columns = ['Date', 'Avg Sentiment']
+    return trend
+
+def balanced_sample(df, n=2):
+    """n articles per keyword"""
+    return df.groupby('Keyword').head(n)
+
+
+# ============================================================
+#  SESSION STATE INIT
+# ============================================================
+for key in ['df','tfidf','lda','from_date','to_date','logged_in','role','username']:
+    if key not in st.session_state:
+        st.session_state[key] = None
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+
+
+# ============================================================
+#  LOGIN PAGE
+# ============================================================
+def show_login():
+    st.markdown("""
+    <div style="max-width:420px; margin:6rem auto 0; padding:3rem; 
+                background:var(--surface); border:1px solid var(--border); border-radius:2px;">
+        <p style="font-size:.6rem; letter-spacing:.3em; color:var(--muted);
+                  text-transform:uppercase; margin:0 0 .3rem;">NLP Intelligence</p>
+        <h1 style="font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:300;
+                   color:var(--accent2); margin:0 0 .3rem;">NewsLens</h1>
+        <p style="font-size:.75rem; color:var(--muted); margin:0 0 2rem; letter-spacing:.05em;">
+            Sign in to access the dashboard
+        </p>
+        <hr style="border-color:var(--border); margin-bottom:1.5rem;">
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Center the form
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        with st.container():
+            username = st.text_input("Username", placeholder="admin or user")
+            password = st.text_input("Password", type="password", placeholder="••••••••")
             
-            df_raw = fetch_news(from_date.isoformat(), to_date.isoformat())
+            if st.button("Sign In →", use_container_width=True, type="primary"):
+                role = check_login(username, password)
+                if role:
+                    st.session_state.logged_in = True
+                    st.session_state.role      = role
+                    st.session_state.username  = username
+                    st.rerun()
+                else:
+                    st.error("Invalid credentials.")
             
-            if df_raw.empty:
-                st.error("❌ No articles found.")
-                st.stop()
-            
-            with status:
-                st.write(f"✓ Fetched {len(df_raw)} articles")
-                st.write("🔄 Processing...")
-            progress.progress(50)
-            
-            df = clean_dataset(df_raw)
-            
-            with status:
-                st.write(f"✓ Cleaned to {len(df)} articles")
-                st.write("📊 Analyzing...")
-            progress.progress(75)
-            
-            tfidf_results = perform_tfidf_analysis(df)
-            lda_topics = perform_lda_analysis(df)
-            df, sentiment_dist = perform_sentiment_analysis(df)
-            
-            progress.progress(100)
-            
-            st.session_state.df = df
-            st.session_state.tfidf_results = tfidf_results
-            st.session_state.lda_topics = lda_topics
-            st.session_state.sentiment_dist = sentiment_dist
-            st.session_state.from_date = from_date
-            st.session_state.to_date = to_date
-            
-            with status:
-                st.write("✅ Complete!")
-            
-            status.update(state="complete")
-            st.success("✅ Analysis Completed Successfully!")
-            
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
-    
-    st.divider()
-    
-    # Navigation Radio Buttons
-    if st.session_state.df is not None:
-        st.header("📂 Navigation")
-        section = st.radio(
-            "Select View",
-            ["📊 Summary", "🔑 Keywords", "🎯 Topics", "❤️ Sentiment", "📥 Download"],
+            st.markdown("""
+            <p style="font-size:.65rem; color:var(--muted); text-align:center; margin-top:1rem; letter-spacing:.05em;">
+                Demo — admin / admin123 &nbsp;·&nbsp; user / user123
+            </p>
+            """, unsafe_allow_html=True)
+
+
+# ============================================================
+#  ADMIN PAGE
+# ============================================================
+def show_admin(df):
+    section_title("Admin Console", "System overview · Data management")
+
+    tab1, tab2 = st.tabs(["📊  System Stats", "🗄️  Data Management"])
+
+    with tab1:
+        if df is not None:
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Total Articles", len(df))
+            col2.metric("Unique Sources", df['Source'].nunique())
+            col3.metric("Keywords", df['Keyword'].nunique())
+            col4.metric("Date Span", f"{df['Date'].min()} → {df['Date'].max()}")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            section_title("Keyword Distribution")
+            kw = df['Keyword'].value_counts().reset_index()
+            kw.columns = ['Keyword','Count']
+            fig = px.bar(kw, x='Keyword', y='Count', title="Articles per Keyword")
+            fig.update_layout(**plotly_theme())
+            fig.update_traces(marker_color='#c8954a')
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No data loaded yet. Fetch data from the sidebar.")
+
+    with tab2:
+        if df is not None:
+            section_title("Duplicate Check")
+            dupes = df.duplicated(subset=['Title']).sum()
+            col1, col2 = st.columns(2)
+            col1.metric("Duplicate Titles", int(dupes))
+            col2.metric("Clean Articles", len(df) - int(dupes))
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            section_title("Raw Data Preview")
+            st.dataframe(df[['Title','Source','Keyword','Date']].head(20), use_container_width=True)
+
+            if st.button("🗑  Clear Dataset", type="primary"):
+                st.session_state.df = None
+                st.session_state.tfidf = None
+                st.session_state.lda = None
+                st.success("Dataset cleared.")
+                st.rerun()
+        else:
+            st.info("No dataset in memory.")
+
+
+# ============================================================
+#  MAIN APP
+# ============================================================
+def show_app():
+    # ── SIDEBAR ──────────────────────────────────────────────
+    with st.sidebar:
+        st.markdown(f"""
+        <div style="padding:1.2rem 0 1rem; border-bottom:1px solid var(--border); margin-bottom:1rem;">
+            <p style="font-size:.6rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; margin:0;">
+                Signed in as
+            </p>
+            <p style="font-size:.9rem; color:var(--accent2); font-family:'Cormorant Garamond',serif; margin:.2rem 0 0;">
+                {st.session_state.username} 
+                <span style="font-size:.65rem; color:var(--muted);">({st.session_state.role})</span>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("**Search Keywords**")
+        kw_input = st.text_input(
+            "Enter up to 5 keywords (comma-separated)",
+            value="AI, climate, economy, healthcare, elections",
             label_visibility="collapsed"
         )
-    else:
-        st.info("👈 Fetch data first!")
-        section = None
+        keywords = [k.strip().lower() for k in kw_input.split(",") if k.strip()][:5]
+        
+        if keywords:
+            pills = " ".join([f'<span style="border:1px solid var(--border);padding:.1rem .5rem;'
+                              f'font-size:.6rem;letter-spacing:.08em;color:var(--accent);'
+                              f'text-transform:uppercase;">{k}</span>' for k in keywords])
+            st.markdown(f'<div style="margin:.5rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem;">{pills}</div>',
+                        unsafe_allow_html=True)
 
-# ============== MAIN CONTENT ==============
-st.title("📰 NLP News Analysis Pipeline")
+        st.markdown("**Date Range**")
+        today         = datetime.utcnow().date()
+        default_start = today - timedelta(days=14)
+        col1, col2    = st.columns(2)
+        from_date = col1.date_input("From", value=default_start, max_value=today, label_visibility="collapsed")
+        to_date   = col2.date_input("To",   value=today,         max_value=today, label_visibility="collapsed")
 
-if st.session_state.df is None:
-    st.info("👈 Use sidebar to fetch and analyze news articles!")
-else:
-    df = st.session_state.df
-    
-    # ============== 📊 SUMMARY PAGE ==============
-    if section == "📊 Summary":
-        st.subheader("📊 Data Summary")
-        
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.metric("📰 Total", len(df))
-        with col2:
-            st.metric("📊 Sources", df['Source'].nunique())
-        with col3:
-            st.metric("🔍 Keywords", df['Keyword'].nunique())
-        with col4:
-            st.metric("📅 Date Range", f"{st.session_state.from_date} to {st.session_state.to_date}")
-        with col5:
-            st.metric("🌐 Unique", len(df['Source'].unique()))
-        
+        if from_date > to_date:
+            st.error("From date is after To date.")
+        else:
+            days = (to_date - from_date).days
+            st.caption(f"Range: {days} days")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        fetch_btn = st.button("Fetch & Analyse →", use_container_width=True, type="primary",
+                              disabled=(from_date > to_date))
+
+        if fetch_btn:
+            if API_KEY == "YOUR_NEWSAPI_KEY_HERE":
+                st.error("Set your NewsAPI key in st.secrets['NEWSAPI_KEY']")
+            else:
+                prog = st.progress(0)
+                with st.spinner("Fetching articles…"):
+                    raw = fetch_news(tuple(keywords), from_date.isoformat(), to_date.isoformat())
+                prog.progress(30)
+                if raw.empty:
+                    st.error("No articles found.")
+                else:
+                    with st.spinner("Processing…"):
+                        df = clean_dataset(raw)
+                    prog.progress(60)
+                    with st.spinner("Analysing…"):
+                        tfidf = perform_tfidf(df)
+                        lda   = perform_lda(df)
+                        df    = perform_sentiment(df)
+                    prog.progress(100)
+                    st.session_state.df        = df
+                    st.session_state.tfidf     = tfidf
+                    st.session_state.lda       = lda
+                    st.session_state.from_date = from_date
+                    st.session_state.to_date   = to_date
+                    st.success(f"✓ {len(df)} articles analysed")
+
+        st.markdown("<br>", unsafe_allow_html=True)
         st.divider()
-        
-        st.write("### 📰 Articles by Keyword")
-        keyword_counts = df['Keyword'].value_counts()
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            st.bar_chart(keyword_counts)
-        with col2:
-            st.dataframe(keyword_counts.to_frame('Count'), use_container_width=True, hide_index=False)
-        
+
+        # Navigation
+        if st.session_state.df is not None:
+            nav_options = ["Summary", "Trends", "Topics", "Sentiment", "Export"]
+            if st.session_state.role == "admin":
+                nav_options.append("Admin")
+
+            section = st.radio("Navigate", nav_options, label_visibility="collapsed")
+        else:
+            st.caption("Fetch data to unlock views.")
+            section = None
+
         st.divider()
-        
-        st.write("### 📡 Top News Sources")
-        source_counts = df['Source'].value_counts().head(10)
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            st.bar_chart(source_counts)
-        with col2:
-            st.dataframe(source_counts.to_frame('Count'), use_container_width=True, hide_index=False)
-        
-        st.divider()
-        
-        st.write("### 📋 Data Sample")
-        st.dataframe(df[['Title', 'Source', 'Keyword', 'Published Date']].head(10), use_container_width=True)
-    
-    # ============== 🔑 KEYWORDS PAGE ==============
-    elif section == "🔑 Keywords":
-        st.subheader("🔑 Top 10 Keywords (TF-IDF)")
-        
-        st.info("TF-IDF measures keyword importance in the corpus. Higher scores = more important.")
-        
-        tfidf_results = st.session_state.tfidf_results
-        tfidf_df = pd.DataFrame(list(tfidf_results.items()), columns=['Keyword', 'Score']).sort_values('Score', ascending=False).reset_index(drop=True)
-        tfidf_df.index = tfidf_df.index + 1
-        
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            st.bar_chart(tfidf_df.set_index('Keyword')['Score'].sort_values(ascending=True))
-        with col2:
-            st.dataframe(tfidf_df, use_container_width=True)
-        
-        st.divider()
-        
-        st.write("### 📈 Detailed Metrics")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Keywords", len(tfidf_df))
-        with col2:
-            st.metric("Max Score", f"{tfidf_df['Score'].max():.4f}")
-        with col3:
-            st.metric("Avg Score", f"{tfidf_df['Score'].mean():.4f}")
-        with col4:
-            st.metric("Min Score", f"{tfidf_df['Score'].min():.4f}")
-        
-        st.divider()
-        
-        st.write("### 📥 Export")
-        csv = tfidf_df.to_csv(index=False)
-        st.download_button("📥 Download Keywords CSV", data=csv, file_name="top_keywords.csv", mime="text/csv", use_container_width=True)
-    
-    # ============== 🎯 TOPICS PAGE ==============
-    elif section == "🎯 Topics":
-        st.subheader("🎯 LDA Topics Analysis")
-        
-        st.info("LDA discovers abstract topics from documents. Each topic shows its top 8 relevant words.")
-        
-        lda_topics = st.session_state.lda_topics
-        
-        for topic_name, words in lda_topics.items():
-            with st.container():
-                col1, col2 = st.columns([1, 4])
-                with col1:
-                    st.write(f"**{topic_name}**")
-                with col2:
-                    st.write(words)
-                st.divider()
-        
-        st.write("### 📊 Topic Statistics")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Number of Topics", len(lda_topics))
-        with col2:
-            total_words = sum(len([w.strip() for w in words.split(',')]) for words in lda_topics.values())
-            st.metric("Total Words", total_words)
-        with col3:
-            avg_words = total_words / len(lda_topics)
-            st.metric("Avg Words/Topic", f"{avg_words:.1f}")
-        
-        st.divider()
-        
-        st.write("### 📥 Export")
-        topics_data = [{'Topic': t, 'Words': w} for t, w in lda_topics.items()]
-        topics_df = pd.DataFrame(topics_data)
-        csv = topics_df.to_csv(index=False)
-        st.download_button("📥 Download Topics CSV", data=csv, file_name="lda_topics.csv", mime="text/csv", use_container_width=True)
-    
-    # ============== ❤️ SENTIMENT PAGE ==============
-    elif section == "❤️ Sentiment":
-        st.subheader("❤️ Sentiment Analysis")
-        
-        st.info("VADER sentiment analysis. Classifications: Positive (≥0.2), Neutral (-0.2 to 0.2), Negative (≤-0.2)")
-        
-        sentiment_dist = st.session_state.sentiment_dist
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            positive = sentiment_dist.get('Positive', 0)
-            st.metric("😊 Positive", positive, f"{(positive/len(df)*100):.1f}%")
-        with col2:
-            neutral = sentiment_dist.get('Neutral', 0)
-            st.metric("😐 Neutral", neutral, f"{(neutral/len(df)*100):.1f}%")
-        with col3:
-            negative = sentiment_dist.get('Negative', 0)
-            st.metric("😞 Negative", negative, f"{(negative/len(df)*100):.1f}%")
-        with col4:
-            st.metric("📊 Total", len(df))
-        
-        st.divider()
-        
-        # 🥧 PIE CHART
-        st.write("### 🥧 Sentiment Distribution")
-        sentiment_chart = pd.DataFrame(list(sentiment_dist.items()), columns=['Sentiment', 'Count'])
-        
-        fig = px.pie(
-            sentiment_chart,
-            values='Count',
-            names='Sentiment',
-            title="Sentiment Distribution",
-            color_discrete_map={'Positive': '#2ecc71', 'Neutral': '#f39c12', 'Negative': '#e74c3c'}
-        )
-        fig.update_traces(textposition='inside', textinfo='label+percent')
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.divider()
-        
-        # Sentiment by Keyword
-        st.write("### 📊 Sentiment by Keyword")
-        sentiment_keyword = pd.crosstab(df['Keyword'], df['sentiment_label'])
-        st.dataframe(sentiment_keyword, use_container_width=True)
-        
-        fig_keyword = px.bar(
-            sentiment_keyword.reset_index(),
-            x='Keyword',
-            y=['Positive', 'Negative', 'Neutral'],
-            title="Sentiment by Keyword",
-            color_discrete_map={'Positive': '#2ecc71', 'Neutral': '#f39c12', 'Negative': '#e74c3c'},
-            barmode='group'
-        )
-        st.plotly_chart(fig_keyword, use_container_width=True)
-        
-        st.divider()
-        
-        # Score distribution
-        st.write("### 📈 Sentiment Score Distribution")
-        fig_hist = px.histogram(
-            df,
-            x='sentiment_scores',
-            nbins=30,
-            title="Distribution of Sentiment Scores",
-            labels={'sentiment_scores': 'Sentiment Score', 'count': 'Number of Articles'},
-            color_discrete_sequence=['#3498db']
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
-        
-        st.divider()
-        
-        st.write("### 📊 Statistics")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Mean", f"{df['sentiment_scores'].mean():.4f}")
-        with col2:
-            st.metric("Median", f"{df['sentiment_scores'].median():.4f}")
-        with col3:
-            st.metric("Std Dev", f"{df['sentiment_scores'].std():.4f}")
-        with col4:
-            st.metric("Range", f"{df['sentiment_scores'].min():.4f} to {df['sentiment_scores'].max():.4f}")
-        
-        st.divider()
-        
-        st.write("### 🔍 Most Positive & Negative")
+        if st.button("Sign Out", use_container_width=False):
+            for k in ['logged_in','role','username','df','tfidf','lda']:
+                st.session_state[k] = None
+            st.session_state.logged_in = False
+            st.rerun()
+
+    # ── MAIN CONTENT ─────────────────────────────────────────
+    brand_header()
+
+    if st.session_state.df is None:
+        st.markdown("""
+        <div style="text-align:center; padding:5rem 0;">
+            <p style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--muted); font-weight:300;">
+                Enter keywords and fetch articles to begin.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+
+    df    = st.session_state.df
+    tfidf = st.session_state.tfidf
+    lda   = st.session_state.lda
+
+    # ══════════════════════════════════════════════════════════
+    #  SUMMARY
+    # ══════════════════════════════════════════════════════════
+    if section == "Summary":
+        section_title("Summary", "Overview of fetched articles")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Articles", len(df))
+        c2.metric("Sources", df['Source'].nunique())
+        c3.metric("Keywords", df['Keyword'].nunique())
+        pos_pct = round(len(df[df['sentiment']=='Positive'])/len(df)*100, 1)
+        c4.metric("Positive Sentiment", f"{pos_pct}%")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
         col1, col2 = st.columns(2)
-        
         with col1:
-            st.write("**Top 5 Most Positive**")
-            top_pos = df.nlargest(5, 'sentiment_scores')[['Title', 'sentiment_scores', 'Source']]
-            for idx, row in top_pos.iterrows():
-                st.write(f"**Score:** {row['sentiment_scores']:.4f}")
-                st.write(f"*{row['Title']}*")
-                st.write(f"Source: {row['Source']}")
-                st.divider()
-        
+            section_title("Articles by Keyword")
+            kw_cnt = df['Keyword'].value_counts().reset_index()
+            kw_cnt.columns = ['Keyword','Count']
+            fig = px.bar(kw_cnt, x='Keyword', y='Count')
+            fig.update_layout(**plotly_theme(), showlegend=False)
+            fig.update_traces(marker_color='#c8954a', marker_line_width=0)
+            st.plotly_chart(fig, use_container_width=True)
+
         with col2:
-            st.write("**Top 5 Most Negative**")
-            top_neg = df.nsmallest(5, 'sentiment_scores')[['Title', 'sentiment_scores', 'Source']]
-            for idx, row in top_neg.iterrows():
-                st.write(f"**Score:** {row['sentiment_scores']:.4f}")
-                st.write(f"*{row['Title']}*")
-                st.write(f"Source: {row['Source']}")
-                st.divider()
-        
-        st.divider()
-        
-        st.write("### 📥 Export")
-        sentiment_export = df[['Title', 'Source', 'sentiment_scores', 'sentiment_label']].copy()
-        csv = sentiment_export.to_csv(index=False)
-        st.download_button("📥 Download Sentiment CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv", use_container_width=True)
-    
-    # ============== 📥 DOWNLOAD PAGE ==============
-    elif section == "📥 Download":
-        st.subheader("📥 Export & Download Results")
-        
-        st.info("Download your analysis results in various formats.")
-        
-        # Full Dataset
-        st.write("### 1️⃣ Full Dataset")
-        csv_full = df.to_csv(index=False)
-        st.download_button("📥 Download Full CSV", data=csv_full, file_name=f"analysis_full_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        
-        st.divider()
-        
-        # Sentiment Data
-        st.write("### 2️⃣ Sentiment Analysis")
-        sentiment_df = df[['Title', 'Source', 'Keyword', 'Published Date', 'sentiment_scores', 'sentiment_label']].copy()
-        csv_sentiment = sentiment_df.to_csv(index=False)
-        st.download_button("📥 Download Sentiment CSV", data=csv_sentiment, file_name=f"sentiment_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        st.dataframe(sentiment_df.head(), use_container_width=True)
-        
-        st.divider()
-        
-        # Clean Text
-        st.write("### 3️⃣ Cleaned Text Data")
-        clean_text_df = df[['Title', 'clean_news', 'preprocessed_news', 'Keyword']].copy()
-        csv_clean = clean_text_df.to_csv(index=False)
-        st.download_button("📥 Download Cleaned Text CSV", data=csv_clean, file_name=f"cleaned_text_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        
-        st.divider()
-        
-        # Keywords
-        st.write("### 4️⃣ Top 10 Keywords")
-        tfidf_results = st.session_state.tfidf_results
-        tfidf_df = pd.DataFrame(list(tfidf_results.items()), columns=['Keyword', 'TF-IDF Score']).sort_values('TF-IDF Score', ascending=False)
-        csv_tfidf = tfidf_df.to_csv(index=False)
-        st.download_button("📥 Download Keywords CSV", data=csv_tfidf, file_name=f"keywords_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        st.dataframe(tfidf_df, use_container_width=True)
-        
-        st.divider()
-        
-        # Topics
-        st.write("### 5️⃣ LDA Topics")
-        lda_topics = st.session_state.lda_topics
-        topics_data = [{'Topic': t, 'Words': w} for t, w in lda_topics.items()]
-        topics_df = pd.DataFrame(topics_data)
-        csv_topics = topics_df.to_csv(index=False)
-        st.download_button("📥 Download Topics CSV", data=csv_topics, file_name=f"topics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        st.dataframe(topics_df, use_container_width=True)
-        
-        st.divider()
-        
-        # Summary Report
-        st.write("### 6️⃣ Analysis Summary Report")
-        summary_data = {
-            'Metric': ['From Date', 'To Date', 'Total Articles', 'Unique Sources', 'Keywords', 'Positive', 'Neutral', 'Negative', 'Avg Sentiment', 'Topics'],
-            'Value': [str(st.session_state.from_date), str(st.session_state.to_date), len(df), df['Source'].nunique(), df['Keyword'].nunique(), 
-                     st.session_state.sentiment_dist.get('Positive', 0), st.session_state.sentiment_dist.get('Neutral', 0), st.session_state.sentiment_dist.get('Negative', 0),
-                     f"{df['sentiment_scores'].mean():.4f}", len(lda_topics)]
+            section_title("Top 10 Sources")
+            src = df['Source'].value_counts().head(10).reset_index()
+            src.columns = ['Source','Count']
+            fig2 = px.bar(src, x='Count', y='Source', orientation='h')
+            fig2.update_layout(**plotly_theme(), showlegend=False,
+                               yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
+            fig2.update_traces(marker_color='#a06030', marker_line_width=0)
+            st.plotly_chart(fig2, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        section_title("Article Sample", f"2 articles per keyword")
+        sample = balanced_sample(df, n=2)
+        for _, row in sample.iterrows():
+            article_card(row['Title'], row['Source'], row['Keyword'], row.get('sentiment_score'))
+
+    # ══════════════════════════════════════════════════════════
+    #  TRENDS
+    # ══════════════════════════════════════════════════════════
+    elif section == "Trends":
+        section_title("Trend Analysis", "Keyword frequency and sentiment over time")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            section_title("Keyword Frequency Over Time")
+            trend = keyword_trend(df)
+            fig = px.line(trend, x='Date', y='Count', color='Keyword',
+                          markers=True, title="Daily Keyword Mentions")
+            fig.update_layout(**plotly_theme())
+            fig.update_traces(line_width=2, marker_size=5)
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            section_title("Sentiment Trend Over Time")
+            s_trend = sentiment_trend(df)
+            fig2 = go.Figure()
+            fig2.add_trace(go.Scatter(
+                x=s_trend['Date'], y=s_trend['Avg Sentiment'],
+                mode='lines+markers',
+                line=dict(color='#c8954a', width=2),
+                marker=dict(size=5, color='#e8c090'),
+                fill='tozeroy', fillcolor='rgba(200,149,74,.08)',
+                name='Avg Sentiment'
+            ))
+            fig2.add_hline(y=0.2,  line_dash='dot', line_color='#6aab6a', annotation_text="Positive", annotation_font_size=9)
+            fig2.add_hline(y=-0.2, line_dash='dot', line_color='#c04a4a', annotation_text="Negative", annotation_font_size=9)
+            fig2.update_layout(title="Daily Average Sentiment Score", **plotly_theme())
+            st.plotly_chart(fig2, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        section_title("Top TF-IDF Keywords", "Extracted from full corpus")
+        tfidf_df = pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score', ascending=False).head(10)
+        fig3 = px.bar(tfidf_df.sort_values('Score'), x='Score', y='Keyword', orientation='h')
+        fig3.update_layout(**plotly_theme(), showlegend=False,
+                           yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
+        fig3.update_traces(marker_color='#c8954a', marker_line_width=0)
+        st.plotly_chart(fig3, use_container_width=True)
+
+    # ══════════════════════════════════════════════════════════
+    #  TOPICS
+    # ══════════════════════════════════════════════════════════
+    elif section == "Topics":
+        section_title("Topic Modelling", "LDA-discovered latent topics")
+
+        for topic_name, words in lda.items():
+            with st.container():
+                st.markdown(f"""
+                <div style="background:var(--surface); border:1px solid var(--border);
+                            border-left:3px solid var(--accent); padding:1.2rem 1.5rem; margin:.6rem 0; border-radius:2px;">
+                    <p style="font-size:.6rem; letter-spacing:.2em; color:var(--muted); 
+                              text-transform:uppercase; margin:0 0 .5rem;">{topic_name}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
+                        {"".join([f'<span style="background:var(--surface2);border:1px solid var(--border);padding:.2rem .7rem;font-size:.75rem;letter-spacing:.05em;color:var(--accent2);">{w}</span>' for w in words])}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Topics", len(lda))
+        c2.metric("Words per Topic", 8)
+        c3.metric("Total Vocab Terms", sum(len(v) for v in lda.values()))
+
+    # ══════════════════════════════════════════════════════════
+    #  SENTIMENT
+    # ══════════════════════════════════════════════════════════
+    elif section == "Sentiment":
+        section_title("Sentiment Analysis", "VADER — compound score · Positive ≥0.2 · Negative ≤–0.2")
+
+        dist = df['sentiment'].value_counts()
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("😊 Positive", int(dist.get('Positive',0)),
+                  f"{dist.get('Positive',0)/len(df)*100:.1f}%")
+        c2.metric("😐 Neutral",  int(dist.get('Neutral',0)),
+                  f"{dist.get('Neutral',0)/len(df)*100:.1f}%")
+        c3.metric("😞 Negative", int(dist.get('Negative',0)),
+                  f"{dist.get('Negative',0)/len(df)*100:.1f}%")
+        c4.metric("Mean Score", f"{df['sentiment_score'].mean():.3f}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+
+        with col1:
+            section_title("Distribution")
+            fig = px.pie(
+                values=dist.values, names=dist.index,
+                color=dist.index,
+                color_discrete_map={'Positive':'#6aab6a','Neutral':'#8a8a6a','Negative':'#c04a4a'},
+                hole=0.55
+            )
+            fig.update_layout(**plotly_theme(), showlegend=True)
+            fig.update_traces(textinfo='label+percent', textfont_size=11)
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            section_title("By Keyword")
+            sk = pd.crosstab(df['Keyword'], df['sentiment'])
+            fig2 = px.bar(sk.reset_index(), x='Keyword',
+                          y=[c for c in ['Positive','Neutral','Negative'] if c in sk.columns],
+                          barmode='group',
+                          color_discrete_map={'Positive':'#6aab6a','Neutral':'#8a8a6a','Negative':'#c04a4a'})
+            fig2.update_layout(**plotly_theme())
+            st.plotly_chart(fig2, use_container_width=True)
+
+        section_title("Score Distribution")
+        fig3 = px.histogram(df, x='sentiment_score', nbins=40,
+                            color_discrete_sequence=['#c8954a'])
+        fig3.add_vline(x=0.2,  line_dash='dot', line_color='#6aab6a')
+        fig3.add_vline(x=-0.2, line_dash='dot', line_color='#c04a4a')
+        fig3.update_layout(**plotly_theme(), showlegend=False)
+        st.plotly_chart(fig3, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        section_title("Most Positive & Negative Articles")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("<p style='font-size:.7rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 .8rem;'>Most Positive</p>", unsafe_allow_html=True)
+            for _, row in df.nlargest(5,'sentiment_score').iterrows():
+                article_card(row['Title'], row['Source'], row['Keyword'], row['sentiment_score'])
+        with col2:
+            st.markdown("<p style='font-size:.7rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 .8rem;'>Most Negative</p>", unsafe_allow_html=True)
+            for _, row in df.nsmallest(5,'sentiment_score').iterrows():
+                article_card(row['Title'], row['Source'], row['Keyword'], row['sentiment_score'])
+
+    # ══════════════════════════════════════════════════════════
+    #  EXPORT
+    # ══════════════════════════════════════════════════════════
+    elif section == "Export":
+        section_title("Export", "Download your analysis results")
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+        exports = {
+            "Full Dataset": (df, f"full_{ts}.csv"),
+            "Sentiment Results": (df[['Title','Source','Keyword','Date','sentiment_score','sentiment']], f"sentiment_{ts}.csv"),
+            "Cleaned Text": (df[['Title','clean_news','preprocessed_news','Keyword']], f"cleaned_{ts}.csv"),
+            "Keywords (TF-IDF)": (pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score',ascending=False), f"keywords_{ts}.csv"),
+            "LDA Topics": (pd.DataFrame([{'Topic':t,'Words':', '.join(w)} for t,w in lda.items()]), f"topics_{ts}.csv"),
         }
-        summary_df = pd.DataFrame(summary_data)
-        csv_summary = summary_df.to_csv(index=False)
-        st.download_button("📥 Download Summary CSV", data=csv_summary, file_name=f"summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
-        
-        st.divider()
-        
-        # Import
-        st.write("### 📤 Import Existing CSV")
-        st.write("Upload a previously downloaded CSV to analyze without re-fetching.")
-        
-        uploaded_file = st.file_uploader("Choose CSV", type="csv")
-        if uploaded_file is not None:
-            try:
-                uploaded_df = pd.read_csv(uploaded_file)
-                st.success(f"✅ Loaded {len(uploaded_df)} rows")
-                st.dataframe(uploaded_df.head(), use_container_width=True)
-                
-                if st.button("✅ Use this data", use_container_width=True):
-                    st.session_state.df = uploaded_df
-                    st.success("✅ Data loaded! Refresh to see in other views.")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
+
+        for label, (data, fname) in exports.items():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"""
+                <div style="background:var(--surface);border:1px solid var(--border);
+                            padding:.8rem 1rem; border-radius:2px;">
+                    <p style="margin:0; font-size:.75rem; letter-spacing:.08em; color:var(--accent2);">{label}</p>
+                    <p style="margin:.2rem 0 0; font-size:.65rem; color:var(--muted);">{len(data)} rows · {len(data.columns)} cols</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                st.download_button(f"↓ Download", data=data.to_csv(index=False),
+                                   file_name=fname, mime="text/csv", use_container_width=True)
+            st.markdown("<div style='margin:.4rem 0;'></div>", unsafe_allow_html=True)
+
+    # ══════════════════════════════════════════════════════════
+    #  ADMIN
+    # ══════════════════════════════════════════════════════════
+    elif section == "Admin" and st.session_state.role == "admin":
+        show_admin(df)
 
 
+# ============================================================
+#  ENTRY POINT
+# ============================================================
+if not st.session_state.logged_in:
+    show_login()
+else:
+    show_app()
