@@ -267,9 +267,9 @@ def article_card(title, source, keyword, score=None):
     </div>
     """, unsafe_allow_html=True)
 
-def plotly_theme():
+def plotly_theme(yaxis_override=None):
     """Chocolate-brown luxury theme for Plotly charts"""
-    return dict(
+    theme = dict(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(family='Jost, sans-serif', color='#9a8570', size=11),
@@ -280,6 +280,9 @@ def plotly_theme():
         legend=dict(bgcolor='rgba(0,0,0,0)', bordercolor='#4a3520', borderwidth=1),
         margin=dict(l=40, r=20, t=50, b=40),
     )
+    if yaxis_override:
+        theme['yaxis'].update(yaxis_override)
+    return theme
 
 
 # ============================================================
@@ -777,8 +780,8 @@ def show_app():
             src.columns = ['Source','Count']
             fig2 = px.bar(src, x='Count', y='Source', orientation='h',
                          title="Most active sources")
-            fig2.update_layout(**plotly_theme(), showlegend=False, height=400,
-                               yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
+            theme = plotly_theme(yaxis_override={'autorange': 'reversed'})
+            fig2.update_layout(**theme, showlegend=False, height=400)
             fig2.update_traces(marker_color='#6aab6a', marker_line_width=0)
             st.plotly_chart(fig2, use_container_width=True)
 
@@ -833,8 +836,8 @@ def show_app():
         tfidf_df = pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score', ascending=False).head(15)
         fig3 = px.bar(tfidf_df.sort_values('Score'), x='Score', y='Keyword', orientation='h',
                      title="Term frequency-inverse document frequency scores")
-        fig3.update_layout(**plotly_theme(), showlegend=False, height=500,
-                           yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
+        theme = plotly_theme(yaxis_override={'autorange': 'reversed'})
+        fig3.update_layout(**theme, showlegend=False, height=500)
         fig3.update_traces(marker_color='#c8954a', marker_line_width=0)
         st.plotly_chart(fig3, use_container_width=True)
 
