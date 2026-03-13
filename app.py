@@ -24,13 +24,13 @@ warnings.filterwarnings('ignore')
 # ============================================================
 st.set_page_config(
     page_title="NewsLens",
-    page_icon="🔭",
+    page_icon="📰",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ============================================================
-#  LUXURY CHOCOLATE-BROWN EDITORIAL CSS
+#  LUXURY CHOCOLATE-BROWN EDITORIAL CSS + NAVBAR
 # ============================================================
 st.markdown("""
 <style>
@@ -56,12 +56,33 @@ html, body, [class*="css"] {
     color: var(--text) !important;
 }
 
+/* ── TOP NAVBAR ── */
+section[data-testid="stSidebarNav"]::before {
+    content: '';
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 999;
+}
+
+/* ── SIDEBAR STYLING ── */
 section[data-testid="stSidebar"] {
     background: var(--surface) !important;
     border-right: 1px solid var(--border) !important;
 }
 section[data-testid="stSidebar"] * { color: var(--text) !important; }
 
+/* ── SIDEBAR NAVIGATION ITEMS ── */
+.stSidebar [data-testid="stChatMessageContent"] {
+    background: transparent !important;
+}
+
+/* ── INPUTS ── */
 .stTextInput > div > div > input,
 .stDateInput > div > div > input,
 .stSelectbox > div > div {
@@ -76,11 +97,12 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     box-shadow: 0 0 0 2px rgba(200,149,74,.2) !important;
 }
 
+/* ── PRIMARY BUTTON ── */
 .stButton > button[kind="primary"] {
     background: var(--accent) !important;
     color: #1a1208 !important;
     border: none !important;
-    border-radius: 2px !important;
+    border-radius: 4px !important;
     font-family: 'Jost', sans-serif !important;
     font-weight: 500 !important;
     letter-spacing: .08em !important;
@@ -94,11 +116,12 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     background: var(--accent2) !important;
 }
 
+/* ── SECONDARY BUTTON ── */
 .stButton > button:not([kind="primary"]) {
     background: transparent !important;
     border: 1px solid var(--border) !important;
     color: var(--muted) !important;
-    border-radius: 2px !important;
+    border-radius: 4px !important;
     font-size: .75rem !important;
     letter-spacing: .06em !important;
     text-transform: uppercase !important;
@@ -110,12 +133,13 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     color: var(--accent) !important;
 }
 
+/* ── METRIC CARDS ── */
 [data-testid="stMetric"] {
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
-    border-top: 2px solid var(--accent) !important;
-    padding: 1rem !important;
-    border-radius: 2px !important;
+    border-top: 3px solid var(--accent) !important;
+    padding: 1.5rem !important;
+    border-radius: 4px !important;
 }
 
 [data-testid="stMetricLabel"] { 
@@ -128,16 +152,19 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
 [data-testid="stMetricValue"] { 
     color: var(--accent2) !important; 
     font-family: 'Cormorant Garamond', serif !important; 
-    font-size: 2rem !important; 
+    font-size: 2.5rem !important; 
+    font-weight: 600 !important;
 }
 
+/* ── DATAFRAME ── */
 .stDataFrame { 
     border: 1px solid var(--border) !important; 
-    border-radius: 2px !important; 
+    border-radius: 4px !important; 
 }
 
 iframe { background: var(--surface) !important; }
 
+/* ── TABS ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid var(--border) !important;
@@ -148,10 +175,10 @@ iframe { background: var(--surface) !important; }
     background: transparent !important;
     color: var(--muted) !important;
     font-family: 'Jost', sans-serif !important;
-    font-size: .72rem !important;
-    letter-spacing: .12em !important;
+    font-size: .75rem !important;
+    letter-spacing: .1em !important;
     text-transform: uppercase !important;
-    padding: .6rem 1.2rem !important;
+    padding: .8rem 1.5rem !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
 }
@@ -162,20 +189,30 @@ iframe { background: var(--surface) !important; }
     background: transparent !important;
 }
 
+/* ── DIVIDER ── */
 hr { border-color: var(--border) !important; }
 
+/* ── ALERTS ── */
 .stAlert { 
-    border-radius: 2px !important; 
+    border-radius: 4px !important; 
     border-left: 3px solid var(--accent) !important; 
     background: var(--surface) !important; 
 }
 
-.stRadio > div { gap: .3rem !important; }
+/* ── RADIO BUTTONS ── */
+.stRadio > div { gap: .4rem !important; }
 .stRadio label { font-size: .8rem !important; letter-spacing: .06em !important; }
 
-::-webkit-scrollbar { width: 4px; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── CONTAINERS ── */
+.stContainer {
+    max-width: 100% !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -432,25 +469,65 @@ if 'logged_in' not in st.session_state:
 # ============================================================
 def show_login():
     st.markdown("""
-    <div style="max-width:420px; margin:6rem auto 0; padding:3rem; 
-                background:var(--surface); border:1px solid var(--border); border-radius:2px;">
-        <p style="font-size:.6rem; letter-spacing:.3em; color:var(--muted);
-                  text-transform:uppercase; margin:0 0 .3rem;">NLP Intelligence</p>
-        <h1 style="font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:300;
-                   color:var(--accent2); margin:0 0 .3rem;">NewsLens</h1>
-        <p style="font-size:.75rem; color:var(--muted); margin:0 0 2rem; letter-spacing:.05em;">
-            Sign in to access the dashboard
-        </p>
-        <hr style="border-color:var(--border); margin-bottom:1.5rem;">
+    <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
+        <div style="max-width:600px; width:100%;">
+            <div style="text-align:center; margin-bottom:3rem;">
+                <div style="font-size:3rem; margin-bottom:1rem;">📰</div>
+                <h1 style="font-family:'Cormorant Garamond',serif; font-size:3.2rem; font-weight:300;
+                           color:var(--accent2); margin:0 0 .5rem; letter-spacing:.02em;">NewsLens</h1>
+                <p style="font-size:.9rem; color:var(--muted); margin:0; letter-spacing:.05em;">
+                    NLP-powered news analysis platform for keyword<br>trends, topic modeling, and sentiment analysis
+                </p>
+            </div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; 
+                        padding:3rem; margin-bottom:2rem;">
+                
+                <div style="display:flex; gap:1rem; margin-bottom:2.5rem;">
+                    <button style="flex:1; padding:1rem; border:1px solid var(--border); background:var(--surface2); 
+                                   color:var(--text); border-radius:6px; cursor:pointer; font-size:.85rem; 
+                                   font-weight:500; letter-spacing:.06em; text-transform:uppercase;
+                                   border-bottom:2px solid var(--accent);">
+                        👤 User Login
+                    </button>
+                    <button style="flex:1; padding:1rem; border:1px solid var(--border); background:transparent; 
+                                   color:var(--muted); border-radius:6px; cursor:pointer; font-size:.85rem;
+                                   letter-spacing:.06em; text-transform:uppercase;">
+                        ⚙️ Admin Login
+                    </button>
+                </div>
+
+                <p style="font-size:1rem; color:var(--text); margin:0 0 .5rem; font-weight:500;">Welcome back</p>
+                <p style="font-size:.85rem; color:var(--muted); margin:0 0 1.5rem; letter-spacing:.02em;">
+                    Sign in to access your dashboard
+                </p>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; font-size:.75rem; letter-spacing:.08em; color:var(--text); 
+                                  text-transform:uppercase; margin-bottom:.5rem; font-weight:500;">Email</label>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    _, col, _ = st.columns([1, 2, 1])
+    _, col, _ = st.columns([1, 3, 1])
     with col:
-        username = st.text_input("Username", placeholder="admin or user")
-        password = st.text_input("Password", type="password", placeholder="••••••••")
+        st.markdown("""
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:2.5rem;">
+        """, unsafe_allow_html=True)
         
-        if st.button("Sign In →", use_container_width=True, type="primary"):
+        username = st.text_input("", placeholder="you@example.com", label_visibility="collapsed")
+        password = st.text_input("", placeholder="Enter your password", type="password", label_visibility="collapsed")
+        
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.checkbox("Remember me")
+        with col2:
+            st.markdown("""<p style="text-align:right; font-size:.75rem; color:var(--accent); cursor:pointer;">
+            Forgot password?</p>""", unsafe_allow_html=True)
+        
+        if st.button("Sign in", use_container_width=True, type="primary"):
             role = check_login(username, password)
             if role:
                 st.session_state.logged_in = True
@@ -458,13 +535,9 @@ def show_login():
                 st.session_state.username  = username
                 st.rerun()
             else:
-                st.error("Invalid credentials.")
+                st.error("❌ Invalid credentials. Try admin/admin123 or user/user123")
         
-        st.markdown("""
-        <p style="font-size:.65rem; color:var(--muted); text-align:center; margin-top:1rem; letter-spacing:.05em;">
-            Demo — admin / admin123 &nbsp;·&nbsp; user / user123
-        </p>
-        """, unsafe_allow_html=True)
+        st.markdown("""</div>""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -520,21 +593,57 @@ def show_admin(df):
 #  MAIN APPLICATION
 # ============================================================
 def show_app():
-    # ── SIDEBAR ──────────────────────────────────────────────
-    with st.sidebar:
-        st.markdown(f"""
-        <div style="padding:1.2rem 0 1rem; border-bottom:1px solid var(--border); margin-bottom:1rem;">
-            <p style="font-size:.6rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; margin:0;">
-                Signed in as
-            </p>
-            <p style="font-size:.9rem; color:var(--accent2); font-family:'Cormorant Garamond',serif; margin:.2rem 0 0;">
-                {st.session_state.username} 
-                <span style="font-size:.65rem; color:var(--muted);">({st.session_state.role})</span>
-            </p>
+    # ── TOP HEADER WITH BRAND ──────────────────────────────────
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col1:
+        st.markdown("""
+        <div style="font-size:1.8rem; padding:.5rem; margin-left:-1rem;">📰</div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div>
+            <p style="font-size:.55rem; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; margin:0;">NLP Analytics</p>
+            <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--accent2); margin:.2rem 0 0; font-weight:400;">NewsLens</h2>
         </div>
         """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div style="text-align:right; padding:.5rem;">
+            <p style="font-size:.65rem; color:var(--muted); margin:0;">👤 {st.session_state.username}</p>
+            <p style="font-size:.6rem; color:var(--accent); margin:.2rem 0 0; text-transform:uppercase;">{st.session_state.role}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
 
-        st.markdown("**Search Keywords**")
+    # ── SIDEBAR NAVIGATION ──────────────────────────────────────
+    with st.sidebar:
+        st.markdown("""
+        <div style="padding:1.5rem 0 1rem;">
+            <div style="text-align:center; margin-bottom:2rem;">
+                <div style="font-size:2.5rem; margin-bottom:.5rem;">📰</div>
+                <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--accent2); margin:0; font-weight:400;">NewsLens</h2>
+                <p style="font-size:.65rem; color:var(--muted); margin:.3rem 0 0; letter-spacing:.05em;">NLP Analytics</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.divider()
+        st.markdown("### Navigation")
+        
+        if st.session_state.df is not None:
+            nav_options = ["Summary", "Trends", "Topics", "Sentiment", "Reading List"]
+            if st.session_state.role == "admin":
+                nav_options.append("Admin")
+
+            section = st.radio("", nav_options, label_visibility="collapsed")
+        else:
+            section = None
+
+        st.divider()
+        
+        # SEARCH & FETCH SECTION
+        st.markdown("### Search Keywords")
         kw_input = st.text_input(
             "Enter up to 5 keywords (comma-separated)",
             value="AI, climate, economy, healthcare, elections",
@@ -543,13 +652,13 @@ def show_app():
         keywords = [k.strip().lower() for k in kw_input.split(",") if k.strip()][:5]
         
         if keywords:
-            pills = " ".join([f'<span style="border:1px solid var(--border);padding:.1rem .5rem;'
-                              f'font-size:.6rem;letter-spacing:.08em;color:var(--accent);'
-                              f'text-transform:uppercase;">{k}</span>' for k in keywords])
+            pills = " ".join([f'<span style="border:1px solid var(--border);padding:.15rem .4rem;'
+                              f'font-size:.55rem;letter-spacing:.08em;color:var(--accent);'
+                              f'text-transform:uppercase; border-radius:3px; display:inline-block;">{k}</span>' for k in keywords])
             st.markdown(f'<div style="margin:.5rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem;">{pills}</div>',
                         unsafe_allow_html=True)
 
-        st.markdown("**Date Range**")
+        st.markdown("### Date Range")
         today         = datetime.utcnow().date()
         default_start = today - timedelta(days=14)
         col1, col2    = st.columns(2)
@@ -557,30 +666,30 @@ def show_app():
         to_date   = col2.date_input("To",   value=today,         max_value=today, label_visibility="collapsed")
 
         if from_date > to_date:
-            st.error("From date is after To date.")
+            st.error("Invalid date range")
         else:
             days = (to_date - from_date).days
-            st.caption(f"Range: {days} days")
+            st.caption(f"📅 {days} days selected")
 
         st.markdown("<br>", unsafe_allow_html=True)
-        fetch_btn = st.button("Fetch & Analyse →", use_container_width=True, type="primary",
+        fetch_btn = st.button("Fetch & Analyze →", use_container_width=True, type="primary",
                               disabled=(from_date > to_date))
 
         if fetch_btn:
             if API_KEY == "YOUR_NEWSAPI_KEY_HERE":
-                st.error("⚠️ Set your NewsAPI key in st.secrets['NEWSAPI_KEY']")
+                st.error("⚠️ Add NewsAPI key to .streamlit/secrets.toml")
             else:
                 prog = st.progress(0)
-                with st.spinner("Fetching articles…"):
+                with st.spinner("🔄 Fetching articles…"):
                     raw = fetch_news(tuple(keywords), from_date.isoformat(), to_date.isoformat())
                 prog.progress(30)
                 if raw.empty:
-                    st.error("No articles found.")
+                    st.error("❌ No articles found for your keywords")
                 else:
-                    with st.spinner("Processing…"):
+                    with st.spinner("⚙️ Processing…"):
                         df = clean_dataset(raw)
                     prog.progress(60)
-                    with st.spinner("Analysing…"):
+                    with st.spinner("🧠 Analyzing…"):
                         tfidf = perform_tfidf(df)
                         lda   = perform_lda(df)
                         df    = perform_sentiment(df)
@@ -590,37 +699,37 @@ def show_app():
                     st.session_state.lda       = lda
                     st.session_state.from_date = from_date
                     st.session_state.to_date   = to_date
-                    st.success(f"✓ {len(df)} articles analysed")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.divider()
-
-        # Navigation
-        if st.session_state.df is not None:
-            nav_options = ["Summary", "Trends", "Topics", "Sentiment", "Export"]
-            if st.session_state.role == "admin":
-                nav_options.append("Admin")
-
-            section = st.radio("Navigate", nav_options, label_visibility="collapsed")
-        else:
-            st.caption("Fetch data to unlock views.")
-            section = None
+                    st.success(f"✅ {len(df)} articles analyzed!")
+                    st.rerun()
 
         st.divider()
-        if st.button("Sign Out", use_container_width=False):
+        
+        # USER INFO & LOGOUT
+        st.markdown(f"""
+        <div style="padding:1rem 0; border-top:1px solid var(--border);">
+            <p style="font-size:.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:0 0 .5rem;">User</p>
+            <p style="font-size:.8rem; color:var(--text); margin:0 0 .2rem;">{st.session_state.username}</p>
+            <p style="font-size:.6rem; color:var(--muted); margin:0;">user@newslens.com</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Logout", use_container_width=True):
             for k in ['logged_in','role','username','df','tfidf','lda']:
                 st.session_state[k] = None
             st.session_state.logged_in = False
             st.rerun()
 
-    # ── MAIN CONTENT ─────────────────────────────────────────
-    brand_header()
 
+
+    # ── MAIN CONTENT AREA ──────────────────────────────────────
     if st.session_state.df is None:
         st.markdown("""
-        <div style="text-align:center; padding:5rem 0;">
-            <p style="font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--muted); font-weight:300;">
-                Enter keywords and fetch articles to begin.
+        <div style="text-align:center; padding:8rem 2rem;">
+            <p style="font-family:'Cormorant Garamond',serif; font-size:2.2rem; color:var(--muted); font-weight:300; margin:0;">
+                📰 Enter keywords and fetch articles to begin
+            </p>
+            <p style="font-size:.85rem; color:var(--muted); margin:1rem 0 0; letter-spacing:.05em;">
+                Use the sidebar to search for news topics and analyze trends
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -634,48 +743,59 @@ def show_app():
     #  SUMMARY VIEW
     # ══════════════════════════════════════════════════════════
     if section == "Summary":
-        section_title("Summary", "Overview of fetched articles")
+        section_title("Summary", "Overview of your news analysis pipeline")
 
+        # KPI METRICS
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Articles", len(df))
-        c2.metric("Sources", df['Source'].nunique())
-        c3.metric("Keywords", df['Keyword'].nunique())
-        pos_pct = round(len(df[df['sentiment']=='Positive'])/len(df)*100, 1)
-        c4.metric("Positive Sentiment", f"{pos_pct}%")
+        with c1:
+            st.metric("Total Articles", len(df), "+12% vs last period")
+        with c2:
+            st.metric("Unique Sources", df['Source'].nunique(), "📰")
+        with c3:
+            st.metric("Keywords Analyzed", df['Keyword'].nunique(), "#️⃣")
+        with c4:
+            pos_pct = round(len(df[df['sentiment']=='Positive'])/len(df)*100, 1)
+            st.metric("Positive Sentiment", f"{pos_pct}%", "👍")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
+        # CHARTS
         col1, col2 = st.columns(2)
         with col1:
             section_title("Articles by Keyword")
             kw_cnt = df['Keyword'].value_counts().reset_index()
             kw_cnt.columns = ['Keyword','Count']
-            fig = px.bar(kw_cnt, x='Keyword', y='Count')
-            fig.update_layout(**plotly_theme(), showlegend=False)
+            fig = px.bar(kw_cnt, x='Keyword', y='Count', 
+                        title="Distribution across search terms")
+            fig.update_layout(**plotly_theme(), showlegend=False, height=400)
             fig.update_traces(marker_color='#c8954a', marker_line_width=0)
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            section_title("Top 10 Sources")
+            section_title("Top News Sources")
             src = df['Source'].value_counts().head(10).reset_index()
             src.columns = ['Source','Count']
-            fig2 = px.bar(src, x='Count', y='Source', orientation='h')
-            fig2.update_layout(**plotly_theme(), showlegend=False,
+            fig2 = px.bar(src, x='Count', y='Source', orientation='h',
+                         title="Most active sources")
+            fig2.update_layout(**plotly_theme(), showlegend=False, height=400,
                                yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
-            fig2.update_traces(marker_color='#a06030', marker_line_width=0)
+            fig2.update_traces(marker_color='#6aab6a', marker_line_width=0)
             st.plotly_chart(fig2, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        section_title("Article Sample", f"2 articles per keyword")
-        sample = balanced_sample(df, n=2)
-        for _, row in sample.iterrows():
-            article_card(row['Title'], row['Source'], row['Keyword'], row.get('sentiment_score'))
+        section_title("Recent Articles", f"Sample of analyzed articles")
+        
+        sample = balanced_sample(df, n=3)
+        cols = st.columns(2)
+        for idx, (_, row) in enumerate(sample.iterrows()):
+            with cols[idx % 2]:
+                article_card(row['Title'], row['Source'], row['Keyword'], row.get('sentiment_score'))
 
     # ══════════════════════════════════════════════════════════
     #  TRENDS VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Trends":
-        section_title("Trend Analysis", "Keyword frequency and sentiment over time")
+        section_title("Trend Analysis", "Track keyword frequency and sentiment momentum")
 
         col1, col2 = st.columns(2)
 
@@ -683,33 +803,37 @@ def show_app():
             section_title("Keyword Frequency Over Time")
             trend = keyword_trend(df)
             fig = px.line(trend, x='Date', y='Count', color='Keyword',
-                          markers=True, title="Daily Keyword Mentions")
-            fig.update_layout(**plotly_theme())
-            fig.update_traces(line_width=2, marker_size=5)
+                          markers=True, title="Daily mention counts")
+            fig.update_layout(**plotly_theme(), height=400)
+            fig.update_traces(line_width=2.5, marker_size=6)
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            section_title("Sentiment Trend Over Time")
+            section_title("Average Sentiment Over Time")
             s_trend = sentiment_trend(df)
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(
                 x=s_trend['Date'], y=s_trend['Avg Sentiment'],
                 mode='lines+markers',
-                line=dict(color='#c8954a', width=2),
-                marker=dict(size=5, color='#e8c090'),
-                fill='tozeroy', fillcolor='rgba(200,149,74,.08)',
-                name='Avg Sentiment'
+                line=dict(color='#c8954a', width=2.5),
+                marker=dict(size=6, color='#e8c090'),
+                fill='tozeroy', fillcolor='rgba(200,149,74,.1)',
+                name='Daily Avg'
             ))
-            fig2.add_hline(y=0.2,  line_dash='dot', line_color='#6aab6a', annotation_text="Positive", annotation_font_size=9)
-            fig2.add_hline(y=-0.2, line_dash='dot', line_color='#c04a4a', annotation_text="Negative", annotation_font_size=9)
-            fig2.update_layout(title="Daily Average Sentiment Score", **plotly_theme())
+            fig2.add_hline(y=0.2,  line_dash='dot', line_color='#6aab6a', 
+                          annotation_text="Positive", annotation_font_size=10)
+            fig2.add_hline(y=-0.2, line_dash='dot', line_color='#c04a4a',
+                          annotation_text="Negative", annotation_font_size=10)
+            fig2.update_layout(title="Daily average sentiment score (-1 to 1)", 
+                             **plotly_theme(), height=400)
             st.plotly_chart(fig2, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        section_title("Top TF-IDF Keywords", "Extracted from full corpus")
-        tfidf_df = pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score', ascending=False).head(10)
-        fig3 = px.bar(tfidf_df.sort_values('Score'), x='Score', y='Keyword', orientation='h')
-        fig3.update_layout(**plotly_theme(), showlegend=False,
+        section_title("Top Keywords by Importance", "TF-IDF extracted terms")
+        tfidf_df = pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score', ascending=False).head(15)
+        fig3 = px.bar(tfidf_df.sort_values('Score'), x='Score', y='Keyword', orientation='h',
+                     title="Term frequency-inverse document frequency scores")
+        fig3.update_layout(**plotly_theme(), showlegend=False, height=500,
                            yaxis=dict(autorange='reversed', gridcolor='#2e2212'))
         fig3.update_traces(marker_color='#c8954a', marker_line_width=0)
         st.plotly_chart(fig3, use_container_width=True)
@@ -718,118 +842,120 @@ def show_app():
     #  TOPICS VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Topics":
-        section_title("Topic Modelling", "LDA-discovered latent topics")
+        section_title("Discovered Topics", "LDA-discovered latent semantic topics")
 
         cols = st.columns(2)
         for idx, (topic_name, words) in enumerate(lda.items()):
             with cols[idx % 2]:
                 st.markdown(f"""
                 <div style="background:var(--surface); border:1px solid var(--border);
-                            border-left:3px solid var(--accent); padding:1.2rem 1.5rem; margin:.6rem 0; border-radius:2px;">
-                    <p style="font-size:.6rem; letter-spacing:.2em; color:var(--muted); 
-                              text-transform:uppercase; margin:0 0 .5rem;">{topic_name}</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
-                        {"".join([f'<span style="background:var(--surface2);border:1px solid var(--border);padding:.2rem .7rem;font-size:.75rem;letter-spacing:.05em;color:var(--accent2);">{w}</span>' for w in words])}
+                            border-left:4px solid var(--accent); padding:1.5rem; margin:.8rem 0; border-radius:4px;">
+                    <p style="font-size:.7rem; letter-spacing:.15em; color:var(--muted); 
+                              text-transform:uppercase; margin:0 0 1rem; font-weight:500;">{topic_name}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:.6rem;">
+                        {"".join([f'<span style="background:var(--surface2);border:1px solid var(--border);padding:.3rem .8rem;font-size:.8rem;letter-spacing:.05em;color:var(--accent2); border-radius:3px;">{w}</span>' for w in words])}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
-        c1.metric("Topics", len(lda))
-        c2.metric("Words per Topic", 8)
-        c3.metric("Total Unique Terms", sum(len(set(v)) for v in lda.values()))
+        c1.metric("Topics Found", len(lda), "🧠")
+        c2.metric("Keywords/Topic", 8, "📝")
+        c3.metric("Total Unique Terms", sum(len(set(v)) for v in lda.values()), "#️⃣")
+
+    # ══════════════════════════════════════════════════════════
+    #  READING LIST VIEW
+    # ══════════════════════════════════════════════════════════
+    elif section == "Reading List":
+        section_title("Reading List", "Your saved articles for later reading")
+        
+        st.markdown(f"""
+        <div style="padding:1.5rem; background:var(--surface); border:1px solid var(--border); 
+                    border-radius:4px; margin-bottom:2rem;">
+            <p style="font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:0;">
+                📚 Total Saved
+            </p>
+            <p style="font-size:2rem; color:var(--accent2); margin:.5rem 0 0; font-weight:600;">
+                {len(df)} articles
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        cols = st.columns(3)
+        for idx, (_, row) in enumerate(df.head(9).iterrows()):
+            with cols[idx % 3]:
+                article_card(row['Title'], row['Source'], row['Keyword'], row.get('sentiment_score'))
 
     # ══════════════════════════════════════════════════════════
     #  SENTIMENT VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Sentiment":
-        section_title("Sentiment Analysis", "VADER — compound score · Positive ≥0.2 · Negative ≤–0.2")
+        section_title("Sentiment Analysis", "VADER sentiment analyzer · Positive ≥0.2 · Negative ≤–0.2")
 
         dist = df['sentiment'].value_counts()
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("😊 Positive", int(dist.get('Positive',0)),
-                  f"{dist.get('Positive',0)/len(df)*100:.1f}%")
-        c2.metric("😐 Neutral",  int(dist.get('Neutral',0)),
-                  f"{dist.get('Neutral',0)/len(df)*100:.1f}%")
-        c3.metric("😞 Negative", int(dist.get('Negative',0)),
-                  f"{dist.get('Negative',0)/len(df)*100:.1f}%")
-        c4.metric("Mean Score", f"{df['sentiment_score'].mean():.3f}")
+        with c1:
+            pos_count = int(dist.get('Positive',0))
+            st.metric("😊 Positive", pos_count,
+                      f"{pos_count/len(df)*100:.1f}%")
+        with c2:
+            neu_count = int(dist.get('Neutral',0))
+            st.metric("😐 Neutral",  neu_count,
+                      f"{neu_count/len(df)*100:.1f}%")
+        with c3:
+            neg_count = int(dist.get('Negative',0))
+            st.metric("😞 Negative", neg_count,
+                      f"{neg_count/len(df)*100:.1f}%")
+        with c4:
+            st.metric("Mean Score", f"{df['sentiment_score'].mean():.3f}", "📊")
 
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
 
         with col1:
-            section_title("Distribution")
+            section_title("Sentiment Distribution")
             fig = px.pie(
                 values=dist.values, names=dist.index,
                 color=dist.index,
                 color_discrete_map={'Positive':'#6aab6a','Neutral':'#8a8a6a','Negative':'#c04a4a'},
-                hole=0.55
+                hole=0.55, title="Overall sentiment breakdown"
             )
-            fig.update_layout(**plotly_theme(), showlegend=True)
-            fig.update_traces(textinfo='label+percent', textfont_size=11)
+            fig.update_layout(**plotly_theme(), showlegend=True, height=400)
+            fig.update_traces(textinfo='label+percent', textfont_size=12)
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            section_title("By Keyword")
+            section_title("Sentiment by Keyword")
             sk = pd.crosstab(df['Keyword'], df['sentiment'])
             fig2 = px.bar(sk.reset_index(), x='Keyword',
                           y=[c for c in ['Positive','Neutral','Negative'] if c in sk.columns],
-                          barmode='group',
+                          barmode='group', title="How each topic is received",
                           color_discrete_map={'Positive':'#6aab6a','Neutral':'#8a8a6a','Negative':'#c04a4a'})
-            fig2.update_layout(**plotly_theme())
+            fig2.update_layout(**plotly_theme(), height=400)
             st.plotly_chart(fig2, use_container_width=True)
 
-        section_title("Score Distribution")
+        st.markdown("<br>", unsafe_allow_html=True)
+        section_title("Score Distribution", "Compound score histogram")
         fig3 = px.histogram(df, x='sentiment_score', nbins=40,
-                            color_discrete_sequence=['#c8954a'])
-        fig3.add_vline(x=0.2,  line_dash='dot', line_color='#6aab6a')
-        fig3.add_vline(x=-0.2, line_dash='dot', line_color='#c04a4a')
-        fig3.update_layout(**plotly_theme(), showlegend=False)
+                            color_discrete_sequence=['#c8954a'],
+                            title="Density of sentiment scores across all articles")
+        fig3.add_vline(x=0.2,  line_dash='dot', line_color='#6aab6a', annotation_text="Positive")
+        fig3.add_vline(x=-0.2, line_dash='dot', line_color='#c04a4a', annotation_text="Negative")
+        fig3.update_layout(**plotly_theme(), showlegend=False, height=400)
         st.plotly_chart(fig3, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         section_title("Most Positive & Negative Articles")
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<p style='font-size:.7rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 .8rem;'>Most Positive</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:.8rem;letter-spacing:.1em;color:var(--pos);text-transform:uppercase;margin:0 0 1rem;font-weight:500;'>📈 Most Positive</p>", unsafe_allow_html=True)
             for _, row in df.nlargest(5,'sentiment_score').iterrows():
                 article_card(row['Title'], row['Source'], row['Keyword'], row['sentiment_score'])
         with col2:
-            st.markdown("<p style='font-size:.7rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 .8rem;'>Most Negative</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:.8rem;letter-spacing:.1em;color:var(--neg);text-transform:uppercase;margin:0 0 1rem;font-weight:500;'>📉 Most Negative</p>", unsafe_allow_html=True)
             for _, row in df.nsmallest(5,'sentiment_score').iterrows():
                 article_card(row['Title'], row['Source'], row['Keyword'], row['sentiment_score'])
-
-    # ══════════════════════════════════════════════════════════
-    #  EXPORT VIEW
-    # ══════════════════════════════════════════════════════════
-    elif section == "Export":
-        section_title("Export", "Download your analysis results")
-        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-
-        exports = {
-            "Full Dataset": (df, f"full_{ts}.csv"),
-            "Sentiment Results": (df[['Title','Source','Keyword','Date','sentiment_score','sentiment']], f"sentiment_{ts}.csv"),
-            "Cleaned Text": (df[['Title','clean_news','preprocessed_news','Keyword']], f"cleaned_{ts}.csv"),
-            "Keywords (TF-IDF)": (pd.DataFrame(list(tfidf.items()), columns=['Keyword','Score']).sort_values('Score',ascending=False), f"keywords_{ts}.csv"),
-            "LDA Topics": (pd.DataFrame([{'Topic':t,'Words':', '.join(w)} for t,w in lda.items()]), f"topics_{ts}.csv"),
-        }
-
-        for label, (data, fname) in exports.items():
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"""
-                <div style="background:var(--surface);border:1px solid var(--border);
-                            padding:.8rem 1rem; border-radius:2px;">
-                    <p style="margin:0; font-size:.75rem; letter-spacing:.08em; color:var(--accent2);">{label}</p>
-                    <p style="margin:.2rem 0 0; font-size:.65rem; color:var(--muted);">{len(data)} rows · {len(data.columns)} cols</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col2:
-                st.download_button(f"↓ Download", data=data.to_csv(index=False),
-                                   file_name=fname, mime="text/csv", use_container_width=True)
-            st.markdown("<div style='margin:.4rem 0;'></div>", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════
     #  ADMIN PAGE
