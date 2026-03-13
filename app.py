@@ -30,13 +30,12 @@ st.set_page_config(
 )
 
 # ============================================================
-#  GLOBAL CSS  –  chocolate-brown luxury editorial
+#  LUXURY CHOCOLATE-BROWN EDITORIAL CSS
 # ============================================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
 
-/* ── tokens ── */
 :root {
     --bg:        #1a1208;
     --surface:   #231a0e;
@@ -51,21 +50,18 @@ st.markdown("""
     --neu:       #8a8a6a;
 }
 
-/* ── base ── */
 html, body, [class*="css"] {
     font-family: 'Jost', sans-serif;
     background: var(--bg) !important;
     color: var(--text) !important;
 }
 
-/* sidebar */
 section[data-testid="stSidebar"] {
     background: var(--surface) !important;
     border-right: 1px solid var(--border) !important;
 }
 section[data-testid="stSidebar"] * { color: var(--text) !important; }
 
-/* inputs */
 .stTextInput > div > div > input,
 .stDateInput > div > div > input,
 .stSelectbox > div > div {
@@ -74,12 +70,12 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     color: var(--text) !important;
     border-radius: 4px !important;
 }
+
 .stTextInput > div > div > input:focus {
     border-color: var(--accent) !important;
     box-shadow: 0 0 0 2px rgba(200,149,74,.2) !important;
 }
 
-/* primary button */
 .stButton > button[kind="primary"] {
     background: var(--accent) !important;
     color: #1a1208 !important;
@@ -93,9 +89,11 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     padding: .65rem 1.5rem !important;
     transition: background .2s ease !important;
 }
+
 .stButton > button[kind="primary"]:hover {
     background: var(--accent2) !important;
 }
+
 .stButton > button:not([kind="primary"]) {
     background: transparent !important;
     border: 1px solid var(--border) !important;
@@ -106,23 +104,12 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     text-transform: uppercase !important;
     transition: border-color .2s, color .2s !important;
 }
+
 .stButton > button:not([kind="primary"]):hover {
     border-color: var(--accent) !important;
     color: var(--accent) !important;
 }
 
-/* download button */
-.stDownloadButton > button {
-    background: transparent !important;
-    border: 1px solid var(--accent) !important;
-    color: var(--accent) !important;
-    border-radius: 2px !important;
-    font-size: .75rem !important;
-    letter-spacing: .08em !important;
-    text-transform: uppercase !important;
-}
-
-/* metrics */
 [data-testid="stMetric"] {
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
@@ -130,19 +117,33 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
     padding: 1rem !important;
     border-radius: 2px !important;
 }
-[data-testid="stMetricLabel"] { color: var(--muted) !important; font-size: .7rem !important; letter-spacing: .1em !important; text-transform: uppercase !important; }
-[data-testid="stMetricValue"] { color: var(--accent2) !important; font-family: 'Cormorant Garamond', serif !important; font-size: 2rem !important; }
 
-/* dataframe */
-.stDataFrame { border: 1px solid var(--border) !important; border-radius: 2px !important; }
+[data-testid="stMetricLabel"] { 
+    color: var(--muted) !important; 
+    font-size: .7rem !important; 
+    letter-spacing: .1em !important; 
+    text-transform: uppercase !important; 
+}
+
+[data-testid="stMetricValue"] { 
+    color: var(--accent2) !important; 
+    font-family: 'Cormorant Garamond', serif !important; 
+    font-size: 2rem !important; 
+}
+
+.stDataFrame { 
+    border: 1px solid var(--border) !important; 
+    border-radius: 2px !important; 
+}
+
 iframe { background: var(--surface) !important; }
 
-/* tabs */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid var(--border) !important;
     gap: 0 !important;
 }
+
 .stTabs [data-baseweb="tab"] {
     background: transparent !important;
     color: var(--muted) !important;
@@ -154,26 +155,24 @@ iframe { background: var(--surface) !important; }
     border: none !important;
     border-bottom: 2px solid transparent !important;
 }
+
 .stTabs [aria-selected="true"] {
     color: var(--accent) !important;
     border-bottom: 2px solid var(--accent) !important;
     background: transparent !important;
 }
 
-/* divider */
 hr { border-color: var(--border) !important; }
 
-/* info / success / error boxes */
-.stAlert { border-radius: 2px !important; border-left: 3px solid var(--accent) !important; background: var(--surface) !important; }
+.stAlert { 
+    border-radius: 2px !important; 
+    border-left: 3px solid var(--accent) !important; 
+    background: var(--surface) !important; 
+}
 
-/* radio in sidebar */
 .stRadio > div { gap: .3rem !important; }
 .stRadio label { font-size: .8rem !important; letter-spacing: .06em !important; }
 
-/* plotly */
-.js-plotly-plot .plotly { background: transparent !important; }
-
-/* scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -182,9 +181,10 @@ hr { border-color: var(--border) !important; }
 
 
 # ============================================================
-#  HELPERS – branded HTML components
+#  BRANDED HTML COMPONENTS
 # ============================================================
 def brand_header():
+    """Luxury header with NewsLens branding"""
     st.markdown("""
     <div style="padding:2rem 0 1.5rem; border-bottom:1px solid var(--border); margin-bottom:2rem;">
         <p style="font-family:'Jost',sans-serif; font-size:.65rem; letter-spacing:.25em;
@@ -203,6 +203,7 @@ def brand_header():
     """, unsafe_allow_html=True)
 
 def section_title(text, sub=None):
+    """Elegant section divider with title"""
     st.markdown(f"""
     <div style="margin:2rem 0 1.2rem; padding-bottom:.8rem; border-bottom:1px solid var(--border);">
         <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300;
@@ -212,6 +213,7 @@ def section_title(text, sub=None):
     """, unsafe_allow_html=True)
 
 def article_card(title, source, keyword, score=None):
+    """Article card with sentiment indicator"""
     score_color = "var(--pos)" if score and score >= 0.2 else ("var(--neg)" if score and score <= -0.2 else "var(--neu)")
     score_html = f"<span style='color:{score_color}; font-size:.7rem;'>● {score:.3f}</span>" if score is not None else ""
     st.markdown(f"""
@@ -229,7 +231,7 @@ def article_card(title, source, keyword, score=None):
     """, unsafe_allow_html=True)
 
 def plotly_theme():
-    """Return common plotly layout overrides for the brown theme."""
+    """Chocolate-brown luxury theme for Plotly charts"""
     return dict(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -267,7 +269,7 @@ STOP_WORDS, LEMMATIZER = get_preprocessing_resources()
 
 
 # ============================================================
-#  AUTH  (simple hash-based; no DB required)
+#  AUTHENTICATION (hash-based, no DB required)
 # ============================================================
 USERS = {
     "admin": {"password": hashlib.sha256("admin123".encode()).hexdigest(), "role": "admin"},
@@ -283,7 +285,7 @@ def check_login(username, password):
 
 
 # ============================================================
-#  CONFIG
+#  CONFIGURATION
 # ============================================================
 try:
     API_KEY = st.secrets.get("NEWSAPI_KEY", "YOUR_NEWSAPI_KEY_HERE")
@@ -317,10 +319,11 @@ def preprocess_text(text):
 
 
 # ============================================================
-#  API
+#  NEWS API
 # ============================================================
 @st.cache_data(show_spinner=False, ttl=3600)
 def fetch_news(keywords_tuple, from_date, to_date):
+    """Fetch news articles from NewsAPI"""
     articles_list = []
     for keyword in keywords_tuple:
         for page in range(1, 3):
@@ -350,6 +353,7 @@ def fetch_news(keywords_tuple, from_date, to_date):
     return pd.DataFrame(articles_list)
 
 def clean_dataset(df):
+    """Clean and preprocess the dataset"""
     df["Title"]       = df["Title"].apply(clean_text)
     df["Description"] = df["Description"].apply(clean_text)
     df.dropna(inplace=True)
@@ -365,9 +369,10 @@ def clean_dataset(df):
 
 
 # ============================================================
-#  ANALYSIS
+#  NLP ANALYSIS
 # ============================================================
 def perform_tfidf(df):
+    """Extract top TF-IDF keywords"""
     vec = TfidfVectorizer(max_features=1000, stop_words='english', ngram_range=(1, 2))
     mat = vec.fit_transform(df['clean_news'])
     names = vec.get_feature_names_out()
@@ -375,7 +380,8 @@ def perform_tfidf(df):
     pairs = sorted(zip(names, scores), key=lambda x: x[1], reverse=True)
     return {w: float(s) for w, s in pairs[:15]}
 
-def perform_lda(df, n_topics=3):
+def perform_lda(df, n_topics=5):
+    """Discover latent topics using LDA"""
     vec = CountVectorizer(max_features=500, max_df=0.6, min_df=3, ngram_range=(1, 2), stop_words='english')
     X = vec.fit_transform(df['preprocessed_news'])
     lda = LatentDirichletAllocation(n_components=n_topics, max_iter=50, random_state=42)
@@ -388,6 +394,7 @@ def perform_lda(df, n_topics=3):
     return topics
 
 def perform_sentiment(df):
+    """Perform sentiment analysis using VADER"""
     sia = SentimentIntensityAnalyzer()
     df['sentiment_score'] = df['clean_news'].apply(lambda x: sia.polarity_scores(x)['compound'])
     df['sentiment']       = df['sentiment_score'].apply(
@@ -395,7 +402,7 @@ def perform_sentiment(df):
     return df
 
 def keyword_trend(df):
-    """Daily keyword mentions"""
+    """Daily keyword mention frequency"""
     trend = df.groupby(['Date', 'Keyword']).size().reset_index(name='Count')
     return trend
 
@@ -406,12 +413,12 @@ def sentiment_trend(df):
     return trend
 
 def balanced_sample(df, n=2):
-    """n articles per keyword"""
+    """Sample n articles per keyword"""
     return df.groupby('Keyword').head(n)
 
 
 # ============================================================
-#  SESSION STATE INIT
+#  SESSION STATE INITIALIZATION
 # ============================================================
 for key in ['df','tfidf','lda','from_date','to_date','logged_in','role','username']:
     if key not in st.session_state:
@@ -438,28 +445,26 @@ def show_login():
     </div>
     """, unsafe_allow_html=True)
 
-    # Center the form
     _, col, _ = st.columns([1, 2, 1])
     with col:
-        with st.container():
-            username = st.text_input("Username", placeholder="admin or user")
-            password = st.text_input("Password", type="password", placeholder="••••••••")
-            
-            if st.button("Sign In →", use_container_width=True, type="primary"):
-                role = check_login(username, password)
-                if role:
-                    st.session_state.logged_in = True
-                    st.session_state.role      = role
-                    st.session_state.username  = username
-                    st.rerun()
-                else:
-                    st.error("Invalid credentials.")
-            
-            st.markdown("""
-            <p style="font-size:.65rem; color:var(--muted); text-align:center; margin-top:1rem; letter-spacing:.05em;">
-                Demo — admin / admin123 &nbsp;·&nbsp; user / user123
-            </p>
-            """, unsafe_allow_html=True)
+        username = st.text_input("Username", placeholder="admin or user")
+        password = st.text_input("Password", type="password", placeholder="••••••••")
+        
+        if st.button("Sign In →", use_container_width=True, type="primary"):
+            role = check_login(username, password)
+            if role:
+                st.session_state.logged_in = True
+                st.session_state.role      = role
+                st.session_state.username  = username
+                st.rerun()
+            else:
+                st.error("Invalid credentials.")
+        
+        st.markdown("""
+        <p style="font-size:.65rem; color:var(--muted); text-align:center; margin-top:1rem; letter-spacing:.05em;">
+            Demo — admin / admin123 &nbsp;·&nbsp; user / user123
+        </p>
+        """, unsafe_allow_html=True)
 
 
 # ============================================================
@@ -491,7 +496,7 @@ def show_admin(df):
 
     with tab2:
         if df is not None:
-            section_title("Duplicate Check")
+            section_title("Data Quality")
             dupes = df.duplicated(subset=['Title']).sum()
             col1, col2 = st.columns(2)
             col1.metric("Duplicate Titles", int(dupes))
@@ -512,7 +517,7 @@ def show_admin(df):
 
 
 # ============================================================
-#  MAIN APP
+#  MAIN APPLICATION
 # ============================================================
 def show_app():
     # ── SIDEBAR ──────────────────────────────────────────────
@@ -563,7 +568,7 @@ def show_app():
 
         if fetch_btn:
             if API_KEY == "YOUR_NEWSAPI_KEY_HERE":
-                st.error("Set your NewsAPI key in st.secrets['NEWSAPI_KEY']")
+                st.error("⚠️ Set your NewsAPI key in st.secrets['NEWSAPI_KEY']")
             else:
                 prog = st.progress(0)
                 with st.spinner("Fetching articles…"):
@@ -626,7 +631,7 @@ def show_app():
     lda   = st.session_state.lda
 
     # ══════════════════════════════════════════════════════════
-    #  SUMMARY
+    #  SUMMARY VIEW
     # ══════════════════════════════════════════════════════════
     if section == "Summary":
         section_title("Summary", "Overview of fetched articles")
@@ -667,7 +672,7 @@ def show_app():
             article_card(row['Title'], row['Source'], row['Keyword'], row.get('sentiment_score'))
 
     # ══════════════════════════════════════════════════════════
-    #  TRENDS
+    #  TRENDS VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Trends":
         section_title("Trend Analysis", "Keyword frequency and sentiment over time")
@@ -710,13 +715,14 @@ def show_app():
         st.plotly_chart(fig3, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════
-    #  TOPICS
+    #  TOPICS VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Topics":
         section_title("Topic Modelling", "LDA-discovered latent topics")
 
-        for topic_name, words in lda.items():
-            with st.container():
+        cols = st.columns(2)
+        for idx, (topic_name, words) in enumerate(lda.items()):
+            with cols[idx % 2]:
                 st.markdown(f"""
                 <div style="background:var(--surface); border:1px solid var(--border);
                             border-left:3px solid var(--accent); padding:1.2rem 1.5rem; margin:.6rem 0; border-radius:2px;">
@@ -732,10 +738,10 @@ def show_app():
         c1, c2, c3 = st.columns(3)
         c1.metric("Topics", len(lda))
         c2.metric("Words per Topic", 8)
-        c3.metric("Total Vocab Terms", sum(len(v) for v in lda.values()))
+        c3.metric("Total Unique Terms", sum(len(set(v)) for v in lda.values()))
 
     # ══════════════════════════════════════════════════════════
-    #  SENTIMENT
+    #  SENTIMENT VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Sentiment":
         section_title("Sentiment Analysis", "VADER — compound score · Positive ≥0.2 · Negative ≤–0.2")
@@ -796,7 +802,7 @@ def show_app():
                 article_card(row['Title'], row['Source'], row['Keyword'], row['sentiment_score'])
 
     # ══════════════════════════════════════════════════════════
-    #  EXPORT
+    #  EXPORT VIEW
     # ══════════════════════════════════════════════════════════
     elif section == "Export":
         section_title("Export", "Download your analysis results")
@@ -826,7 +832,7 @@ def show_app():
             st.markdown("<div style='margin:.4rem 0;'></div>", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════
-    #  ADMIN
+    #  ADMIN PAGE
     # ══════════════════════════════════════════════════════════
     elif section == "Admin" and st.session_state.role == "admin":
         show_admin(df)
