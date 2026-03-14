@@ -940,28 +940,28 @@ def show_app():
 
     # READING LIST
     elif section == "Reading List":
-        section_title("Reading List", "Your saved articles")
+        section_title("Reading List", "Your bookmarked articles")
         
-        if st.session_state.reading_list:
+        if st.session_state.bookmarks:
             st.markdown(f"""
             <div style="padding:2rem; background:var(--surface); border:1px solid var(--border); 
                         border-radius:6px; margin-bottom:2rem;">
                 <p style="font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:0;">
-                    📚 Total Saved
+                    📌 Total Bookmarked
                 </p>
                 <p style="font-size:2.8rem; color:var(--accent2); margin:.8rem 0 0; font-weight:600;">
-                    {len(st.session_state.reading_list)}
+                    {len(st.session_state.bookmarks)}
                 </p>
             </div>
             """, unsafe_allow_html=True)
             
             cols = st.columns(3)
-            for idx, article in enumerate(st.session_state.reading_list):
+            for idx, (article_id, article) in enumerate(st.session_state.bookmarks.items()):
                 with cols[idx % 3]:
                     article_card(article['Title'], article['Source'], article['Keyword'], 
-                               article.get('Score'), idx=idx)
+                               article.get('Score'), idx=idx, url=article.get('URL'))
         else:
-            st.info("📝 No saved articles yet. Save articles from Summary, Sentiment, or other views!")
+            st.info("📝 No bookmarked articles yet. Click ★ on articles to save them!")
 
     # ADMIN
     elif section == "Admin" and st.session_state.role == "admin":
