@@ -19,7 +19,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-st.set_page_config(page_title="NewsLens", page_icon="📰", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="NewsPulse", page_icon="📰", layout="wide", initial_sidebar_state="expanded")
 
 # CSS
 st.markdown("""
@@ -239,7 +239,7 @@ if 'bookmarks' not in st.session_state:
 def show_login():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("<div style='text-align:center; padding:4rem 0;'><div style='font-size:3rem;'>📰</div><h1 style='font-family:\"Cormorant Garamond\",serif; color:var(--accent2);'>NewsLens</h1><p style='color:var(--muted);'>NLP-powered news analysis platform</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; padding:4rem 0;'><div style='font-size:3rem;'>📰</div><h1 style='font-family:\"Cormorant Garamond\",serif; color:var(--accent2);'>NewsPulse</h1><p style='color:var(--muted);'>NLP-powered news analysis platform</p></div>", unsafe_allow_html=True)
         st.divider()
         
         username = st.text_input("Email", placeholder="you@example.com")
@@ -296,13 +296,13 @@ def show_app():
     with col1:
         st.markdown("# 📰")
     with col2:
-        st.markdown("<p style='font-size:.7rem; color:var(--muted);'>NLP ANALYTICS</p><h1 style='font-family:\"Cormorant Garamond\",serif; margin:0; color:var(--accent2);'>NewsLens</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:.7rem; color:var(--muted);'>NLP ANALYTICS</p><h1 style='font-family:\"Cormorant Garamond\",serif; margin:0; color:var(--accent2);'>NewsPulse</h1>", unsafe_allow_html=True)
     with col3:
         st.markdown(f"<p style='text-align:right; font-size:.7rem;'>👤 {st.session_state.username}</p>", unsafe_allow_html=True)
     st.divider()
 
     with st.sidebar:
-        st.markdown("<h2 style='text-align:center; font-family:\"Cormorant Garamond\",serif; color:var(--accent2);'>NewsLens</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; font-family:\"Cormorant Garamond\",serif; color:var(--accent2);'>NewsPulse</h2>", unsafe_allow_html=True)
         st.divider()
         st.markdown("### Navigation")
         
