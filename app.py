@@ -931,12 +931,12 @@ def show_app():
             st.markdown("<h3 style='color:var(--pos);'>📈 Most Positive</h3>", unsafe_allow_html=True)
             for i, (_, row) in enumerate(df.nlargest(4,'sentiment_score').iterrows()):
                 article_card(row['Title'], row['Source'], row['Keyword'], 
-                           row['sentiment_score'], idx=i, show_bookmark=True)
+                           row['sentiment_score'], idx=i, url=row.get('URL'))
         with col2:
             st.markdown("<h3 style='color:var(--neg);'>📉 Most Negative</h3>", unsafe_allow_html=True)
             for i, (_, row) in enumerate(df.nsmallest(4,'sentiment_score').iterrows()):
                 article_card(row['Title'], row['Source'], row['Keyword'], 
-                           row['sentiment_score'], idx=100+i, show_bookmark=True)
+                           row['sentiment_score'], idx=100+i, url=row.get('URL'))
 
     # READING LIST
     elif section == "Reading List":
@@ -959,7 +959,7 @@ def show_app():
             for idx, article in enumerate(st.session_state.reading_list):
                 with cols[idx % 3]:
                     article_card(article['Title'], article['Source'], article['Keyword'], 
-                               article.get('Score'), idx=idx, show_bookmark=False)
+                               article.get('Score'), idx=idx)
         else:
             st.info("📝 No saved articles yet. Save articles from Summary, Sentiment, or other views!")
 
