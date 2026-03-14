@@ -264,31 +264,10 @@ except:
 # ============================================================
 @st.cache_data
 def generate_topic_name(keywords_str):
-    """Generate a readable topic name from keywords using Claude"""
-    try:
-        response = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": st.secrets.get("ANTHROPIC_API_KEY", "")
-            },
-            json={
-                "model": "claude-opus-4-20250805",
-                "max_tokens": 50,
-                "messages": [{
-                    "role": "user",
-                    "content": f"Create a short, 2-3 word topic name for these keywords: {keywords_str}. Just the name, nothing else."
-                }]
-            },
-            timeout=5
-        )
-        if response.status_code == 200:
-            content = response.json()['content'][0]['text'].strip()
-            return content[:30]  # Limit length
-    except:
-        pass
-    # Fallback: return capitalized keywords
-    return ' & '.join([w.title() for w in keywords_str.split(', ')[:2]])
+    """Generate a simple topic name from keywords - NO API CALLS"""
+    # Just format the top 2 keywords nicely
+    words = [w.strip().title() for w in keywords_str.split(',')[:2]]
+    return ' & '.join(words)
 
 # ============================================================
 #  TEXT PROCESSING
@@ -807,7 +786,15 @@ def show_app():
             fig2.update_traces(marker_color='#6aab6a')
             st.plotly_chart(fig2, use_container_width=True)
 
-
+        st.markdown("<br>", unsafe_allow_html=True)
+        section_title("Recent Articles")
+        
+        sample = balanced_sample(df, n=3)
+        cols = st.columns(3)
+        for idx, (i, row) in enumerate(sample.iterrows()):
+            with cols[idx % 3]:
+                article_card(row['Title'], row['Source'], row['Keyword'], 
+                           row.get('sentiment_score'), idx=i, url=row.get('URL'))
     elif section == "Trends":
         section_title("Trend Analysis", "Monitor keyword frequency and sentiment momentum")
 
