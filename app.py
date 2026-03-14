@@ -520,62 +520,36 @@ if 'bookmarks' not in st.session_state:
 #  LOGIN PAGE
 # ============================================================
 def show_login():
-    st.markdown("""
-    <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
-        <div style="max-width:600px; width:100%;">
-            <div style="text-align:center; margin-bottom:3rem;">
-                <div style="font-size:4rem; margin-bottom:1.5rem;">📰</div>
-                <h1 style="font-family:'Cormorant Garamond',serif; font-size:3.5rem; font-weight:300;
-                           color:var(--accent2); margin:0 0 .5rem; letter-spacing:.02em;">NewsPulse</h1>
-                <p style="font-size:.95rem; color:var(--muted); margin:0; letter-spacing:.05em;">
-                    NLP-powered news analysis platform for keyword<br>trends, topic modeling, and sentiment analysis
-                </p>
-            </div>
-
-            <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; 
-                        padding:3rem;">
-                
-                <p style="font-size:1.1rem; color:var(--text); margin:0 0 .8rem; font-weight:500;">Welcome back</p>
-                <p style="font-size:.9rem; color:var(--muted); margin:0 0 2rem; letter-spacing:.02em;">
-                    Sign in to access your dashboard
-                </p>
-
-                <div style="margin-bottom:2rem;">
-                    <label style="display:block; font-size:.75rem; letter-spacing:.08em; color:var(--text); 
-                                  text-transform:uppercase; margin-bottom:.5rem; font-weight:500;">Email</label>
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    _, col, _ = st.columns([1, 3, 1])
-    with col:
-        st.markdown("""
-        <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:2.5rem;">
-        """, unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-family:\"Cormorant Garamond\",serif; color:var(--accent2);'>📰 NewsPulse</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; color:var(--muted);'>NLP-powered news analysis platform</p>", unsafe_allow_html=True)
+    
+    st.divider()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("<h3 style='text-align:center;'>Sign In</h3>", unsafe_allow_html=True)
         
-        username = st.text_input("", placeholder="you@example.com", label_visibility="collapsed")
-        password = st.text_input("", placeholder="Enter your password", type="password", label_visibility="collapsed")
+        username = st.text_input("Email", placeholder="you@example.com")
+        password = st.text_input("Password", placeholder="Enter your password", type="password")
         
-        col1, col2 = st.columns([1, 1])
-        with col1:
+        col_a, col_b = st.columns([1, 1])
+        with col_a:
             st.checkbox("Remember me")
-        with col2:
-            st.markdown("""<p style="text-align:right; font-size:.75rem; color:var(--accent); cursor:pointer;">
-            Forgot password?</p>""", unsafe_allow_html=True)
+        with col_b:
+            st.markdown("<p style='text-align:right; font-size:.75rem; color:var(--accent);'>Forgot password?</p>", unsafe_allow_html=True)
         
-        if st.button("Sign in", use_container_width=True, type="primary"):
+        if st.button("SIGN IN", use_container_width=True, type="primary"):
             role = check_login(username, password)
             if role:
                 st.session_state.logged_in = True
-                st.session_state.role      = role
-                st.session_state.username  = username
+                st.session_state.role = role
+                st.session_state.username = username
                 st.rerun()
             else:
                 st.error("❌ Invalid credentials. Try admin/admin123 or user/user123")
         
-        st.markdown("""</div>""", unsafe_allow_html=True)
+        st.divider()
+        st.markdown("<p style='text-align:center; font-size:.8rem; color:var(--muted);'><strong>Demo Credentials:</strong><br>Admin: admin/admin123<br>User: user/user123</p>", unsafe_allow_html=True)
 
 # ============================================================
 #  ADMIN DASHBOARD
