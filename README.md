@@ -1,6 +1,6 @@
 # 📰 NewsPulse 
 
-NLP Powered News Analytics Platform
+# NLP Powered News Analytics Platform
 
 NewsPulse is an interactive Streamlit-based news intelligence platform
 that fetches real-time news articles and performs advanced Natural
